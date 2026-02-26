@@ -36,5 +36,5 @@ app.delete('/api/items/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Family List on http://localhost:${PORT}`));
