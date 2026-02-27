@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏠 Our Family List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf6ee;
+    --surface: #ffffff;
+    --border: #ede4d8;
+    --text: #2d2416;
+    --text-mid: #7a6a58;
+    --text-soft: #b8a99a;
+    --shadow: rgba(80,50,20,0.08);
+
+    /* Category colors */
+    --food:     #ff6b6b; --food-bg:     #fff0f0;
+    --toys:     #a78bfa; --toys-bg:     #f5f0ff;
+    --clothes:  #f59e0b; --clothes-bg:  #fffbeb;
+    --school:   #3b82f6; --school-bg:   #eff6ff;
+    --house:    #10b981; --house-bg:    #ecfdf5;
+    --health:   #f43f5e; --health-bg:   #fff1f2;
+    --fun:      #f97316; --fun-bg:      #fff7ed;
+    --other:    #6b7280; --other-bg:    #f9fafb;
+
+    /* Urgency */
+    --urgent:   #ef4444;
+    --normal:   #10b981;
+    --sometime: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Decorative blobs */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,107,107,0.07) 0%, transparent 70%);
+    top: -150px; right: -150px;
+  }
+  body::after {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+  }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(253,246,238,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--border);
+    padding: 0 1.5rem;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-title .emoji {
+    font-size: 28px;
+    animation: wave 2.5s ease-in-out infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(12deg); }
+    75% { transform: rotate(-8deg); }
+  }
+
+  .header-title h1 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .header-title span {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .count-badge {
+    background: #ff6b6b;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* Layout */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* Add Form */
+  .add-form {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 84px;
+    box-shadow: 0 4px 24px var(--shadow);
+  }
+
+  .form-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+
+  .field input, .field textarea {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .field input:focus, .field textarea:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 70px;
+    line-height: 1.5;
+  }
+
+  /* Category grid */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .cat-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-mid);
+    transition: all 0.15s;
+    gap: 2px;
+  }
+
+  .cat-btn .cat-emoji { font-size: 20px; }
+  .cat-btn:hover { transform: scale(1.05); }
+
+  .cat-btn.active-food     { border-color: var(--food);    background: var(--food-bg);    color: var(--food); }
+  .cat-btn.active-toys     { border-color: var(--toys);    background: var(--toys-bg);    color: var(--toys); }
+  .cat-btn.active-clothes  { border-color: var(--clothes); background: var(--clothes-bg); color: var(--clothes); }
+  .cat-btn.active-school   { border-color: var(--school);  background: var(--school-bg);  color: var(--school); }
+  .cat-btn.active-house    { border-color: var(--house);   background: var(--house-bg);   color: var(--house); }
+  .cat-btn.active-health   { border-color: var(--health);  background: var(--health-bg);  color: var(--health); }
+  .cat-btn.active-fun      { border-color: var(--fun);     background: var(--fun-bg);     color: var(--fun); }
+  .cat-btn.active-other    { border-color: var(--other);   background: var(--other-bg);   color: var(--other); }
+
+  /* Urgency selector */
+  .urgency-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .urg-btn {
+    padding: 8px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-mid);
+  }
+
+  .urg-btn.active-urgent   { border-color: var(--urgent);   background: #fff1f2; color: var(--urgent); }
+  .urg-btn.active-normal   { border-color: var(--normal);   background: #ecfdf5; color: var(--normal); }
+  .urg-btn.active-sometime { border-color: var(--sometime); background: #f8fafc; color: var(--sometime); }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff6b6b, #f97316);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 0.5rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 16px rgba(255,107,107,0.35);
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,107,107,0.45);
+  }
+
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+
+  /* Right column */
+  .right-col { min-width: 0; }
+
+  /* Filter tabs */
+  .filter-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 1rem;
+    scrollbar-width: none;
+  }
+  .filter-scroll::-webkit-scrollbar { display: none; }
+
+  .filter-tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-mid);
+    white-space: nowrap;
+  }
+
+  .filter-tab.active {
+    background: var(--text);
+    color: white;
+    border-color: var(--text);
+  }
+
+  /* Toolbar */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .result-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .clear-done-btn {
+    padding: 7px 14px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .clear-done-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+  /* Item cards */
+  .items-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px var(--shadow);
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.95) translateY(-6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .item-card:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-1px); }
+  .item-card.done { opacity: 0.45; }
+  .item-card.done .item-name { text-decoration: line-through; }
+
+  .check-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+
+  .check-btn:hover { border-color: #10b981; background: #ecfdf5; }
+  .check-btn.checked { background: #10b981; border-color: #10b981; color: white; }
+
+  .item-body { flex: 1; min-width: 0; }
+
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .item-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cat-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .cat-pill-food     { background: var(--food-bg);    color: var(--food); }
+  .cat-pill-toys     { background: var(--toys-bg);    color: var(--toys); }
+  .cat-pill-clothes  { background: var(--clothes-bg); color: var(--clothes); }
+  .cat-pill-school   { background: var(--school-bg);  color: var(--school); }
+  .cat-pill-house    { background: var(--house-bg);   color: var(--house); }
+  .cat-pill-health   { background: var(--health-bg);  color: var(--health); }
+  .cat-pill-fun      { background: var(--fun-bg);     color: var(--fun); }
+  .cat-pill-other    { background: var(--other-bg);   color: var(--other); }
+
+  .urg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .urg-dot-urgent   { background: var(--urgent); }
+  .urg-dot-normal   { background: var(--normal); }
+  .urg-dot-sometime { background: var(--sometime); }
+
+  .item-note {
+    font-size: 13px;
+    color: var(--text-mid);
+    font-family: 'Nunito Sans', sans-serif;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+
+  .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  .item-who {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-soft);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 8px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+
+  .delete-btn:hover { color: #ef4444; background: #fff1f2; }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-soft);
+  }
+
+  .empty-emoji { font-size: 56px; margin-bottom: 1rem; }
+  .empty-msg { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; font-weight: 600; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--text);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    animation: toastPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes toastPop {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; padding: 1rem; }
+    .add-form { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <span class="emoji">🏠</span>
+    <div>
+      <h1>Our Family List</h1>
+      <span id="headerSub">Loading...</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="count-badge" id="openCount">0</span>
+    <span style="font-size:13px; font-weight:700; color:var(--text-mid)">things needed</span>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Add Form -->
+  <aside>
+    <div class="add-form">
+      <div class="form-title">✏️ Add Something</div>
+
+      <div class="field">
+        <label>Who's asking?</label>
+        <input id="fWho" type="text" placeholder="Mum, Dad, Emma, Liam...">
+      </div>
+
+      <div class="field">
+        <label>What do we need?</label>
+        <input id="fName" type="text" placeholder="e.g. Milk, Lego set, Shampoo...">
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <div class="cat-grid">
+          <button class="cat-btn" data-cat="food"    onclick="pickCat(this)"><span class="cat-emoji">🛒</span>Food</button>
+          <button class="cat-btn" data-cat="toys"    onclick="pickCat(this)"><span class="cat-emoji">🧸</span>Toys</button>
+          <button class="cat-btn" data-cat="clothes" onclick="pickCat(this)"><span class="cat-emoji">👕</span>Clothes</button>
+          <button class="cat-btn" data-cat="school"  onclick="pickCat(this)"><span class="cat-emoji">🎒</span>School</button>
+          <button class="cat-btn" data-cat="house"   onclick="pickCat(this)"><span class="cat-emoji">🏡</span>House</button>
+          <button class="cat-btn" data-cat="health"  onclick="pickCat(this)"><span class="cat-emoji">💊</span>Health</button>
+          <button class="cat-btn" data-cat="fun"     onclick="pickCat(this)"><span class="cat-emoji">🎉</span>Fun</button>
+          <button class="cat-btn" data-cat="other"   onclick="pickCat(this)"><span class="cat-emoji">📦</span>Other</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>When do we need it?</label>
+        <div class="urgency-row">
+          <button class="urg-btn" data-urg="urgent"   onclick="pickUrg(this)">🔴 Now!</button>
+          <button class="urg-btn" data-urg="normal"   onclick="pickUrg(this)">🟢 Soon</button>
+          <button class="urg-btn" data-urg="sometime" onclick="pickUrg(this)">⚪ Sometime</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Note (optional)</label>
+        <textarea id="fNote" placeholder="Any details, brand, size, quantity..."></textarea>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="addItem()">＋ Add to List</button>
+    </div>
+  </aside>
+
+  <!-- List -->
+  <div class="right-col">
+    <div class="filter-scroll" id="filterRow">
+      <button class="filter-tab active" data-f="all" onclick="setFilter(this)">🏠 All</button>
+      <button class="filter-tab" data-f="food"    onclick="setFilter(this)">🛒 Food</button>
+      <button class="filter-tab" data-f="toys"    onclick="setFilter(this)">🧸 Toys</button>
+      <button class="filter-tab" data-f="clothes" onclick="setFilter(this)">👕 Clothes</button>
+      <button class="filter-tab" data-f="school"  onclick="setFilter(this)">🎒 School</button>
+      <button class="filter-tab" data-f="house"   onclick="setFilter(this)">🏡 House</button>
+      <button class="filter-tab" data-f="health"  onclick="setFilter(this)">💊 Health</button>
+      <button class="filter-tab" data-f="fun"     onclick="setFilter(this)">🎉 Fun</button>
+      <button class="filter-tab" data-f="other"   onclick="setFilter(this)">📦 Other</button>
+      <button class="filter-tab" data-f="urgent"  onclick="setFilter(this)">🔴 Urgent</button>
+    </div>
+
+    <div class="toolbar">
+      <span class="result-count" id="resultCount"></span>
+      <button class="clear-done-btn" onclick="clearDone()">🗑 Clear done items</button>
+    </div>
+
+    <div class="items-grid" id="itemsList"></div>
+  </div>
+</div>
+
+<script>
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3001/api'
+  : '/api';
+
+let items = [];
+let selectedCat = null;
+let selectedUrg = 'normal';
+let activeFilter = 'all';
+
+// Set default urgency to normal
+document.querySelector('[data-urg="normal"]').click();
+
+const CAT_EMOJI = { food:'🛒', toys:'🧸', clothes:'👕', school:'🎒', house:'🏡', health:'💊', fun:'🎉', other:'📦' };
+const URG_LABEL = { urgent:'🔴 Need it now', normal:'🟢 Get soon', sometime:'⚪ No rush' };
+
+function pickCat(btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn');
+  selectedCat = btn.dataset.cat;
+  btn.className = `cat-btn active-${selectedCat}`;
+}
+
+function pickUrg(btn) {
+  document.querySelectorAll('.urg-btn').forEach(b => b.className = 'urg-btn');
+  selectedUrg = btn.dataset.urg;
+  btn.className = `urg-btn active-${selectedUrg}`;
+}
+
+function setFilter(btn) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.f;
+  render();
+}
+
+async function load() {
+  try {
+    const r = await fetch(`${API}/items`);
+    items = await r.json();
+    render();
+    updateHeader();
+  } catch(e) {
+    toast('⚠️ Could not reach server');
+  }
+}
+
+function updateHeader() {
+  const open = items.filter(i => !i.done).length;
+  document.getElementById('openCount').textContent = open;
+  document.getElementById('headerSub').textContent =
+    open === 0 ? 'All done! 🎉' : `${open} item${open !== 1 ? 's' : ''} still needed`;
+}
+
+function render() {
+  const list = document.getElementById('itemsList');
+
+  let filtered = [...items];
+
+  if (activeFilter === 'urgent') {
+    filtered = filtered.filter(i => i.urgency === 'urgent' && !i.done);
+  } else if (activeFilter !== 'all') {
+    filtered = filtered.filter(i => i.category === activeFilter);
+  }
+
+  // Sort: urgent first, then undone, then by time
+  filtered.sort((a, b) => {
+    if (!a.done && b.done) return -1;
+    if (a.done && !b.done) return 1;
+    const urgOrder = { urgent: 0, normal: 1, sometime: 2 };
+    if (!a.done && !b.done) return urgOrder[a.urgency] - urgOrder[b.urgency];
+    return 0;
+  });
+
+  document.getElementById('resultCount').textContent =
+    `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    const msgs = ['All clear here! ✨', 'Nothing here yet 😊', 'Add something above! ☝️'];
+    list.innerHTML = `
+      <div class="empty">
+        <div class="empty-emoji">${activeFilter === 'all' ? '🎉' : CAT_EMOJI[activeFilter] || '🔍'}</div>
+        <div class="empty-msg">${activeFilter === 'all' ? "Nothing needed right now!" : "Nothing in this category"}</div>
+        <div class="empty-sub">Add something using the form ☝️</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => `
+    <div class="item-card ${item.done ? 'done' : ''}" id="card-${item.id}">
+      <button class="check-btn ${item.done ? 'checked' : ''}" onclick="toggleDone('${item.id}', ${!item.done})">
+        ${item.done ? '✓' : ''}
+      </button>
+      <div class="item-body">
+        <div class="item-top">
+          <span class="item-name">${esc(item.name)}</span>
+          <span class="cat-pill cat-pill-${item.category}">${CAT_EMOJI[item.category] || '📦'} ${cap(item.category)}</span>
+          <span class="urg-dot urg-dot-${item.urgency}" title="${URG_LABEL[item.urgency]}"></span>
+        </div>
+        ${item.note ? `<div class="item-note">💬 ${esc(item.note)}</div>` : ''}
+        <div class="item-meta">
+          <span class="item-who">👤 ${esc(item.who)}</span>
+          <span>· ${timeAgo(item.createdAt)}</span>
+          ${item.urgency === 'urgent' ? '<span style="color:#ef4444; font-weight:800;">· Urgent!</span>' : ''}
+        </div>
+      </div>
+      <button class="delete-btn" onclick="deleteItem('${item.id}')" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+async function addItem() {
+  const who  = document.getElementById('fWho').value.trim();
+  const name = document.getElementById('fName').value.trim();
+  const note = document.getElementById('fNote').value.trim();
+
+  if (!who)  { toast('👤 Who is asking?'); return; }
+  if (!name) { toast('📝 What do you need?'); return; }
+  if (!selectedCat) { toast('📂 Pick a category!'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Adding...';
+
+  try {
+    const r = await fetch(`${API}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, who, category: selectedCat, urgency: selectedUrg, note })
+    });
+    const item = await r.json();
+    items.unshift(item);
+    render();
+    updateHeader();
+    document.getElementById('fName').value = '';
+    document.getElementById('fNote').value = '';
+    toast(`✅ Added "${name}"!`);
+  } catch(e) {
+    toast('⚠️ Error — is the server running?');
+  } finally {
+    btn.disabled = false; btn.textContent = '＋ Add to List';
+  }
+}
+
+async function toggleDone(id, done) {
+  try {
+    await fetch(`${API}/items/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done })
+    });
+    const idx = items.findIndex(i => i.id === id);
+    if (idx !== -1) items[idx].done = done;
+    render();
+    updateHeader();
+    if (done) toast('🎉 Got it!');
+  } catch(e) { toast('⚠️ Error'); }
+}
+
+async function deleteItem(id) {
+  try {
+    await fetch(`${API}/items/${id}`, { method: 'DELETE' });
+    items = items.filter(i => i.id !== id);
+    render();
+    updateHeader();
+  } catch(e) { toast('⚠️ Error'); }
+}
+
+async function clearDone() {
+  const doneCount = items.filter(i => i.done).length;
+  if (doneCount === 0) { toast('Nothing done to clear!'); return; }
+  try {
+    await fetch(`${API}/items/done/all`, { method: 'DELETE' });
+    items = items.filter(i => !i.done);
+    render();
+    updateHeader();
+    toast(`🗑 Cleared ${doneCount} done item${doneCount !== 1 ? 's' : ''}`);
+  } catch(e) { toast('⚠️ Error'); }
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function timeAgo(iso) {
+  const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addItem();
+});
+
+// Auto-refresh every 20s
+setInterval(load, 20000);
+load();
+</script>
+</body>
+</html>
