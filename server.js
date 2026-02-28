@@ -158,10 +158,10 @@ app.post('/api/auth/login', async (req, res) => {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: 'Wrong email or password' });
 
-  // Fetch family info if they have one
   let family = null;
   if (user.family_id) {
-    family = db.prepare('SELECT id, name, code FROM families WHERE id = ?').get(user.family_id);
+    const f = db.prepare('SELECT id, name, code, owner_id FROM families WHERE id = ?').get(user.family_id);
+    if (f) family = { id: f.id, name: f.name, code: f.code, ownerId: f.owner_id };
   }
 
   res.json({ user: { id: user.id, name: user.name, email: user.email, family_id: user.family_id }, family });
@@ -172,7 +172,8 @@ app.get('/api/auth/me', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   let family = null;
   if (user.family_id) {
-    family = db.prepare('SELECT id, name, code FROM families WHERE id = ?').get(user.family_id);
+    const f = db.prepare('SELECT id, name, code, owner_id FROM families WHERE id = ?').get(user.family_id);
+    if (f) family = { id: f.id, name: f.name, code: f.code, ownerId: f.owner_id };
   }
   res.json({ user: { id: user.id, name: user.name, email: user.email, family_id: user.family_id }, family });
 });
@@ -195,7 +196,7 @@ app.post('/api/family/create', (req, res) => {
     .run(id, name.trim(), code, user.id, new Date().toISOString());
   db.prepare('UPDATE users SET family_id = ? WHERE id = ?').run(id, user.id);
 
-  res.status(201).json({ family: { id, name: name.trim(), code } });
+  res.status(201).json({ family: { id, name: name.trim(), code, ownerId: user.id } });
 });
 
 // Join a family
@@ -215,14 +216,56 @@ app.post('/api/family/join', (req, res) => {
   }
 
   db.prepare('UPDATE users SET family_id = ? WHERE id = ?').run(family.id, user.id);
-  res.json({ family: { id: family.id, name: family.name, code: family.code } });
+  res.json({ family: { id: family.id, name: family.name, code: family.code, ownerId: family.owner_id } });
 });
 
 // Leave a family
 app.post('/api/family/leave', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   if (!user.family_id) return res.status(400).json({ error: 'You are not in a family' });
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(user.family_id);
+  // Owner cannot just leave — they must delete
+  if (family && family.owner_id === user.id) {
+    return res.status(400).json({ error: 'You are the owner. Delete the family instead.' });
+  }
   db.prepare('UPDATE users SET family_id = NULL WHERE id = ?').run(user.id);
+  res.json({ ok: true });
+});
+
+// Delete family (owner only) — kicks all members
+app.post('/api/family/delete', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  if (!user.family_id) return res.status(400).json({ error: 'Not in a family' });
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(user.family_id);
+  if (!family) return res.status(404).json({ error: 'Family not found' });
+  if (family.owner_id !== user.id) return res.status(403).json({ error: 'Only the owner can delete the family' });
+
+  const familyId = family.id;
+  // Kick all members
+  db.prepare('UPDATE users SET family_id = NULL WHERE family_id = ?').run(familyId);
+  // Delete all items
+  db.prepare('DELETE FROM items WHERE family_id = ?').run(familyId);
+  // Delete family
+  db.prepare('DELETE FROM families WHERE id = ?').run(familyId);
+
+  // Notify all connected members they've been kicked
+  sseBroadcast(familyId, 'kicked', { reason: 'Family was deleted' }, user.id);
+  res.json({ ok: true });
+});
+
+// Kick a member (owner only)
+app.post('/api/family/kick/:memberId', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  if (!user.family_id) return res.status(400).json({ error: 'Not in a family' });
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(user.family_id);
+  if (!family || family.owner_id !== user.id) return res.status(403).json({ error: 'Only the owner can remove members' });
+  if (req.params.memberId === user.id) return res.status(400).json({ error: 'Cannot kick yourself' });
+
+  const member = db.prepare('SELECT * FROM users WHERE id = ? AND family_id = ?').get(req.params.memberId, user.family_id);
+  if (!member) return res.status(404).json({ error: 'Member not found' });
+
+  db.prepare('UPDATE users SET family_id = NULL WHERE id = ?').run(member.id);
+  sseBroadcast(user.family_id, 'kicked', { reason: 'You were removed by the family owner' }, user.id);
   res.json({ ok: true });
 });
 
@@ -230,8 +273,9 @@ app.post('/api/family/leave', (req, res) => {
 app.get('/api/family/members', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   if (!user.family_id) return res.status(400).json({ error: 'Not in a family' });
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(user.family_id);
   const members = db.prepare('SELECT id, name, email FROM users WHERE family_id = ?').all(user.family_id);
-  res.json(members);
+  res.json({ members, ownerId: family.owner_id });
 });
 
 // ─── ITEMS ROUTES ──────────────────────────────────────────────────────────

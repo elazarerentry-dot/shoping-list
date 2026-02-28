@@ -117,6 +117,18 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .am-btn{flex:1;padding:7px 10px;border-radius:var(--r);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;border:1px solid var(--border);background:var(--surface2);color:var(--mid);}
 .am-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-bg);}
 .am-btn.danger:hover{border-color:#dc2626;color:#dc2626;background:#fef2f2;}
+.am-member{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #e8f0fe;font-size:12px;}
+.am-member:last-child{border-bottom:none;}
+.am-member-name{flex:1;font-weight:600;color:var(--text);}
+.am-member-you{font-size:10px;color:var(--blue);font-weight:600;background:var(--blue-bg);padding:1px 5px;border-radius:4px;}
+.am-member-kick{background:none;border:none;cursor:pointer;color:#dc2626;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;transition:background .1s;}
+.am-member-kick:hover{background:#fef2f2;}
+#kickedOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:700;display:none;align-items:center;justify-content:center;padding:1rem;}
+#kickedOverlay.show{display:flex;}
+.kicked-box{background:var(--surface);border-radius:var(--rl);padding:2rem;max-width:320px;width:100%;text-align:center;box-shadow:var(--shadow2);}
+.kicked-box .k-icon{font-size:36px;margin-bottom:.5rem;}
+.kicked-box h3{font-size:16px;font-weight:700;margin-bottom:.5rem;}
+.kicked-box p{font-size:13px;color:var(--mid);margin-bottom:1.25rem;}
 
 /* ═══ HEADER ═══ */
 header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;}
@@ -422,11 +434,26 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   <div id="amFamBlock" class="am-fam" style="display:none;">
     <div class="am-fam-name" id="amFamName">—</div>
     <div class="am-fam-code">Invite code: <span class="am-code-val" id="amFamCode">—</span></div>
+    <!-- Admin panel: members list (owner only) -->
+    <div id="amMembersBlock" style="display:none;margin-top:.75rem;">
+      <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">👑 Members</div>
+      <div id="amMembersList"></div>
+    </div>
   </div>
   <div id="amNoFam" style="font-size:12px;color:var(--soft);margin-bottom:.75rem;display:none;">Not in a family yet.</div>
   <div class="am-row">
     <button class="am-btn" id="amFamBtn" onclick="leaveFamilyThenOpen()">Family Settings</button>
     <button class="am-btn danger" onclick="doLogout()">Log Out</button>
+  </div>
+</div>
+
+<!-- ═══ KICKED OVERLAY ═══ -->
+<div id="kickedOverlay">
+  <div class="kicked-box">
+    <div class="k-icon">👋</div>
+    <h3 id="kickedTitle">You've been removed</h3>
+    <p id="kickedMsg">You are no longer in this family.</p>
+    <button class="fam-submit" onclick="handleKicked()">OK</button>
   </div>
 </div>
 
@@ -709,21 +736,29 @@ function openFamilyScreen(){
 
 async function leaveFamilyThenOpen(){
   if (SESSION?.familyId) {
-    const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋');
-    if (!ok) return;
-    try {
-      await apiFetch('/family/leave', { method: 'POST' });
-    } catch(e) { /* ignore if already not in family */ }
+    const isOwner = FAMILY?.ownerId === SESSION.userId;
+    if (isOwner) {
+      const ok = await confirm2('Delete family?', 'This will delete the family and remove all members. This cannot be undone.', '🗑');
+      if (!ok) return;
+      try {
+        await apiFetch('/family/delete', { method: 'POST' });
+      } catch(e) { toast(e.message); return; }
+      toast('Family deleted');
+    } else {
+      const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋');
+      if (!ok) return;
+      try {
+        await apiFetch('/family/leave', { method: 'POST' });
+      } catch(e) { toast(e.message); return; }
+      toast('Left family');
+    }
     SESSION.familyId = null;
     FAMILY = null;
     saveSession(SESSION);
     if (sse) { sse.close(); sse = null; }
     updateAccountMenu();
     updateNoFamilyBanner();
-    items = [];
-    render();
-    updateHeader();
-    toast('Left family');
+    items = []; render(); updateHeader();
   }
   openFamilyScreen();
 }
@@ -820,14 +855,44 @@ function updateAccountMenu(){
     document.getElementById('amNoFam').style.display = 'none';
     document.getElementById('amFamName').textContent = FAMILY.name;
     document.getElementById('amFamCode').textContent = FAMILY.code;
-    document.getElementById('amFamBtn').textContent  = 'Leave / Change Family';
+    const isOwner = FAMILY.ownerId === SESSION.userId;
+    document.getElementById('amFamBtn').textContent = isOwner ? '🗑 Delete Family' : '👋 Leave Family';
+    document.getElementById('amFamBtn').classList.toggle('danger', isOwner);
+    // Load members if owner
+    if (isOwner) loadMembers();
+    else document.getElementById('amMembersBlock').style.display = 'none';
   } else {
     document.getElementById('amFamBlock').style.display = 'none';
     document.getElementById('amNoFam').style.display = '';
     document.getElementById('amFamBtn').textContent = 'Join / Create Family';
+    document.getElementById('amFamBtn').classList.remove('danger');
   }
   document.getElementById('hUser').textContent = SESSION.name;
   document.getElementById('hSub').textContent  = FAMILY ? FAMILY.name : 'No family yet';
+}
+
+async function loadMembers(){
+  try {
+    const { members, ownerId } = await apiFetch('/family/members');
+    const el = document.getElementById('amMembersList');
+    el.innerHTML = members.map(m => `
+      <div class="am-member">
+        <span class="am-member-name">${esc(m.name)}</span>
+        ${m.id === SESSION.userId ? '<span class="am-member-you">you</span>' : ''}
+        ${m.id !== SESSION.userId ? `<button class="am-member-kick" onclick="kickMember('${m.id}','${esc(m.name)}')">Remove</button>` : ''}
+      </div>`).join('');
+    document.getElementById('amMembersBlock').style.display = '';
+  } catch(e) { console.warn(e); }
+}
+
+async function kickMember(memberId, memberName){
+  const ok = await confirm2('Remove member?', `Remove ${memberName} from the family?`, '👤');
+  if (!ok) return;
+  try {
+    await apiFetch('/family/kick/'+memberId, { method:'POST' });
+    toast(memberName + ' removed');
+    loadMembers();
+  } catch(e) { toast(e.message); }
 }
 
 /* ═══ CONFIRM ═══ */
@@ -1140,11 +1205,27 @@ function startSSE() {
   if (sse) sse.close();
   sse = new EventSource(`${SRV}/events?userId=${SESSION.userId}`);
   sse.addEventListener('refresh', () => { load(); });
+  sse.addEventListener('kicked', (e) => {
+    const data = JSON.parse(e.data);
+    document.getElementById('kickedMsg').textContent = data.reason || 'You are no longer in this family.';
+    document.getElementById('kickedOverlay').classList.add('show');
+    sse.close(); sse = null;
+  });
   sse.onerror = () => {
-    // SSE dropped — retry after 5s
     sse.close(); sse = null;
     setTimeout(() => { if (SESSION?.familyId) startSSE(); }, 5000);
   };
+}
+
+function handleKicked(){
+  document.getElementById('kickedOverlay').classList.remove('show');
+  SESSION.familyId = null;
+  FAMILY = null;
+  saveSession(SESSION);
+  updateAccountMenu();
+  updateNoFamilyBanner();
+  items = []; render(); updateHeader();
+  openFamilyScreen();
 }
 // Fallback polling every 30s in case SSE is not working
 setInterval(() => { if (SESSION?.familyId && (!sse || sse.readyState === 2)) load(); }, 30000);
