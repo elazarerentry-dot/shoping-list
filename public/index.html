@@ -325,7 +325,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 <body>
 
 <!-- ═══ AUTH SCREEN ═══ -->
-<div id="authScreen">
+<div id="authScreen" class="hidden">
   <div class="auth-box">
     <div class="auth-logo">🏠</div>
     <h2>Family List</h2>
@@ -355,41 +355,49 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 <!-- ═══ FAMILY SCREEN ═══ -->
 <div id="familyScreen" class="hidden">
   <div class="fam-box">
-    <div class="fam-logo">👨‍👩‍👧‍👦</div>
-    <h2>Join or Create a Family</h2>
-    <p>Create a new family list and invite others, or join an existing one with an invite code.</p>
-    <div class="fam-tabs">
-      <button class="fam-tab active" id="famTabCreate" onclick="famTab('create')">Create Family</button>
-      <button class="fam-tab" id="famTabJoin" onclick="famTab('join')">Join Family</button>
+    <!-- Success screen shown after creating -->
+    <div id="famSuccess" style="display:none;text-align:center;">
+      <div style="font-size:36px;margin-bottom:.5rem;">🎉</div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:.5rem;">Family Created!</h2>
+      <p style="font-size:13px;color:var(--mid);margin-bottom:1.25rem;">Share this invite code with your family members so they can join:</p>
+      <div id="famSuccessCode" style="font-family:monospace;font-size:32px;font-weight:800;letter-spacing:.1em;color:var(--blue);background:var(--blue-bg);border:2px solid #bfdbfe;border-radius:var(--rl);padding:1rem;margin-bottom:1rem;"></div>
+      <p style="font-size:12px;color:var(--soft);margin-bottom:1.5rem;">They go to "Join Family" and enter this code.</p>
+      <button class="fam-submit" onclick="closeFamilyScreen()">Go to My List →</button>
     </div>
-    <!-- Create -->
-    <div class="fam-panel active" id="famPanelCreate">
-      <div class="fam-err" id="createErr"></div>
-      <div class="fam-field">
-        <label>Family Name</label>
-        <input id="famName" type="text" placeholder="e.g. The Smiths" maxlength="40" onkeydown="if(event.key==='Enter')doCreateFamily()">
-        <div class="hint">This is the name your family members will see.</div>
+    <!-- Normal screen -->
+    <div id="famMain">
+      <div class="fam-logo">👨‍👩‍👧‍👦</div>
+      <h2>Join or Create a Family</h2>
+      <p>Create a new family list and share the invite code, or join an existing one.</p>
+      <div class="fam-tabs">
+        <button class="fam-tab active" id="famTabCreate" onclick="famTab('create')">Create Family</button>
+        <button class="fam-tab" id="famTabJoin" onclick="famTab('join')">Join Family</button>
       </div>
-      <div class="fam-field">
-        <label>Family Password <span style="font-weight:400;text-transform:none;letter-spacing:0;">(min 4 chars)</span></label>
-        <input id="famPwd" type="password" placeholder="Share this with family members" onkeydown="if(event.key==='Enter')doCreateFamily()">
-        <div class="hint">Others will need this to join your family.</div>
+      <!-- Create -->
+      <div class="fam-panel active" id="famPanelCreate">
+        <div class="fam-err" id="createErr"></div>
+        <div class="fam-field">
+          <label>Family Name</label>
+          <input id="famName" type="text" placeholder="e.g. The Smiths" maxlength="40" onkeydown="if(event.key==='Enter')doCreateFamily()">
+          <div class="hint">This is the name your family members will see.</div>
+        </div>
+        <button class="fam-submit" id="createFamBtn" onclick="doCreateFamily()">Create Family</button>
       </div>
-      <button class="fam-submit" id="createFamBtn" onclick="doCreateFamily()">Create Family</button>
-    </div>
-    <!-- Join -->
-    <div class="fam-panel" id="famPanelJoin">
-      <div class="fam-err" id="joinErr"></div>
-      <div class="fam-field">
-        <label>Invite Code</label>
-        <input id="joinCode" type="text" placeholder="e.g. BLUE-7492" maxlength="10" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')doJoinFamily()">
-        <div class="hint">Ask your family member for their invite code.</div>
+      <!-- Join -->
+      <div class="fam-panel" id="famPanelJoin">
+        <div class="fam-err" id="joinErr"></div>
+        <div class="fam-field">
+          <label>Family Name</label>
+          <input id="joinName" type="text" placeholder="e.g. The Smiths" maxlength="40" onkeydown="if(event.key==='Enter')doJoinFamily()">
+          <div class="hint">The name of the family you're joining.</div>
+        </div>
+        <div class="fam-field">
+          <label>Invite Code</label>
+          <input id="joinCode" type="text" placeholder="e.g. BLUE-7492" maxlength="10" style="text-transform:uppercase;font-family:monospace;font-size:16px;font-weight:700;letter-spacing:.05em;" onkeydown="if(event.key==='Enter')doJoinFamily()">
+          <div class="hint">Ask your family member for their invite code.</div>
+        </div>
+        <button class="fam-submit" id="joinFamBtn" onclick="doJoinFamily()">Join Family</button>
       </div>
-      <div class="fam-field">
-        <label>Family Password</label>
-        <input id="joinPwd" type="password" placeholder="Family password" onkeydown="if(event.key==='Enter')doJoinFamily()">
-      </div>
-      <button class="fam-submit" id="joinFamBtn" onclick="doJoinFamily()">Join Family</button>
     </div>
   </div>
 </div>
@@ -698,21 +706,31 @@ function openFamilyScreen(){
   document.getElementById('familyScreen').classList.remove('hidden');
 }
 
+function closeFamilyScreen(){
+  document.getElementById('familyScreen').classList.add('hidden');
+  document.getElementById('famSuccess').style.display = 'none';
+  document.getElementById('famMain').style.display = '';
+}
+
 async function doCreateFamily(){
   const name = document.getElementById('famName').value.trim();
-  const pwd  = document.getElementById('famPwd').value;
   const err  = document.getElementById('createErr');
   const btn  = document.getElementById('createFamBtn');
   err.classList.remove('show');
-  if (!name||!pwd){ showErr(err,'Fill in all fields'); return; }
+  if (!name){ showErr(err,'Enter a family name'); return; }
   btn.disabled=true; btn.textContent='Creating…';
   try {
-    const { family } = await apiFetch('/family/create', { method:'POST', body: JSON.stringify({name,password:pwd}) });
+    const { family } = await apiFetch('/family/create', { method:'POST', body: JSON.stringify({name}) });
     FAMILY = family;
     SESSION.familyId = family.id;
     saveSession(SESSION);
-    onFamilyJoined();
-    toast('Family "'+family.name+'" created! Code: '+family.code);
+    // Show the big code screen
+    document.getElementById('famMain').style.display = 'none';
+    document.getElementById('famSuccessCode').textContent = family.code;
+    document.getElementById('famSuccess').style.display = '';
+    updateAccountMenu();
+    updateNoFamilyBanner();
+    load();
   } catch(e) {
     showErr(err, e.message);
   } finally {
@@ -721,15 +739,16 @@ async function doCreateFamily(){
 }
 
 async function doJoinFamily(){
+  const name = document.getElementById('joinName').value.trim();
   const code = document.getElementById('joinCode').value.trim().toUpperCase();
-  const pwd  = document.getElementById('joinPwd').value;
   const err  = document.getElementById('joinErr');
   const btn  = document.getElementById('joinFamBtn');
   err.classList.remove('show');
-  if (!code||!pwd){ showErr(err,'Enter the invite code and password'); return; }
+  if (!name){ showErr(err,'Enter the family name'); return; }
+  if (!code){ showErr(err,'Enter the invite code'); return; }
   btn.disabled=true; btn.textContent='Joining…';
   try {
-    const { family } = await apiFetch('/family/join', { method:'POST', body: JSON.stringify({code,password:pwd}) });
+    const { family } = await apiFetch('/family/join', { method:'POST', body: JSON.stringify({code, name}) });
     FAMILY = family;
     SESSION.familyId = family.id;
     saveSession(SESSION);
@@ -1096,18 +1115,19 @@ setInterval(()=>{ if(SESSION?.familyId) load(); },30000);
 (async function init(){
   SESSION = getSession();
   if (!SESSION) {
+    // No saved session — show login straight away
     document.getElementById('authScreen').classList.remove('hidden');
     return;
   }
-  // Verify session still valid + get latest family info
+  // We have a saved session — verify it's still valid silently in background
   try {
     const { user, family } = await apiFetch('/auth/me');
     SESSION = { userId: user.id, name: user.name, email: user.email, familyId: user.family_id };
     FAMILY = family;
     saveSession(SESSION);
-    document.getElementById('authScreen').classList.add('hidden');
     onLoggedIn();
   } catch {
+    // Session expired or invalid — clear it and show login
     clearSession();
     document.getElementById('authScreen').classList.remove('hidden');
   }

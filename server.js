@@ -29,7 +29,6 @@ db.exec(`
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     code TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     owner_id TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
@@ -116,40 +115,39 @@ app.get('/api/auth/me', (req, res) => {
 // ─── FAMILY ROUTES ─────────────────────────────────────────────────────────
 
 // Create a family
-app.post('/api/family/create', async (req, res) => {
+app.post('/api/family/create', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   if (user.family_id) return res.status(400).json({ error: 'You are already in a family. Leave it first.' });
 
-  const { name, password } = req.body;
-  if (!name || !password) return res.status(400).json({ error: 'name and password required' });
-  if (password.length < 4) return res.status(400).json({ error: 'Family password must be at least 4 characters' });
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'Family name required' });
 
-  const hash = await bcrypt.hash(password, 10);
   const id = uuidv4();
   let code = makeCode();
-  // ensure uniqueness
   while (db.prepare('SELECT id FROM families WHERE code = ?').get(code)) code = makeCode();
 
-  db.prepare('INSERT INTO families (id, name, code, password_hash, owner_id, created_at) VALUES (?,?,?,?,?,?)')
-    .run(id, name.trim(), code, hash, user.id, new Date().toISOString());
+  db.prepare('INSERT INTO families (id, name, code, owner_id, created_at) VALUES (?,?,?,?,?)')
+    .run(id, name.trim(), code, user.id, new Date().toISOString());
   db.prepare('UPDATE users SET family_id = ? WHERE id = ?').run(id, user.id);
 
   res.status(201).json({ family: { id, name: name.trim(), code } });
 });
 
 // Join a family
-app.post('/api/family/join', async (req, res) => {
+app.post('/api/family/join', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   if (user.family_id) return res.status(400).json({ error: 'You are already in a family. Leave it first.' });
 
-  const { code, password } = req.body;
-  if (!code || !password) return res.status(400).json({ error: 'code and password required' });
+  const { code, name } = req.body;
+  if (!code || !name) return res.status(400).json({ error: 'Invite code and family name required' });
 
   const family = db.prepare('SELECT * FROM families WHERE code = ?').get(code.toUpperCase().trim());
   if (!family) return res.status(404).json({ error: 'Family not found. Check the invite code.' });
 
-  const ok = await bcrypt.compare(password, family.password_hash);
-  if (!ok) return res.status(401).json({ error: 'Wrong family password' });
+  // Check name matches (case insensitive)
+  if (family.name.toLowerCase() !== name.trim().toLowerCase()) {
+    return res.status(401).json({ error: 'Family name does not match. Check with your family member.' });
+  }
 
   db.prepare('UPDATE users SET family_id = ? WHERE id = ?').run(family.id, user.id);
   res.json({ family: { id: family.id, name: family.name, code: family.code } });
