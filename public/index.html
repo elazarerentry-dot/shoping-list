@@ -586,16 +586,35 @@ function lsGet(){try{return JSON.parse(localStorage.getItem(LS)||'[]');}catch{re
 function lsSave(a){localStorage.setItem(LS,JSON.stringify(a));}
 function mkId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 async function apiLoad(){if(srvOk&&SRV){try{const r=await fetch(SRV+'/items');if(r.ok){const d=await r.json();lsSave(d);return d;}}catch{}}return lsGet();}
-async function apiAdd(p){const item={id:mkId(),...p,createdAt:new Date().toISOString(),done:false};const a=lsGet();a.unshift(item);lsSave(a);if(srvOk&&SRV){try{const r=await fetch(SRV+'/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});if(r.ok){const s=await r.json();lsSave(lsGet().map(i=>i.id===item.id?s:i));return s;}}catch{}}return item;}
+async function apiAdd(p){if(srvOk&&SRV){try{const r=await fetch(SRV+"/items",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});if(r.ok){const s=await r.json();const a=lsGet();a.unshift(s);lsSave(a);return s;}}catch{}}const item={id:mkId(),...p,createdAt:new Date().toISOString(),done:false};const a=lsGet();a.unshift(item);lsSave(a);return item;}
 async function apiPatch(id,patch){lsSave(lsGet().map(i=>i.id===id?{...i,...patch}:i));if(srvOk&&SRV){try{await fetch(SRV+'/items/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});}catch{}}}
 async function apiDel(id){lsSave(lsGet().filter(i=>i.id!==id));if(srvOk&&SRV){try{await fetch(SRV+'/items/'+id,{method:'DELETE'});}catch{}}}
 async function apiClrDone(){lsSave(lsGet().filter(i=>!i.done));if(srvOk&&SRV){try{await fetch(SRV+'/items/done/all',{method:'DELETE'});}catch{}}}
 
 /* ═══ CONFIRM ═══ */
 let _cr=null;
-function confirm2(title,body,icon='🗑'){return new Promise(res=>{_cr=res;document.getElementById('mIcon').textContent=icon;document.getElementById('mTitle').textContent=title;document.getElementById('mBody').textContent=body;document.getElementById('mConfirmBtn').onclick=()=>{closeConfirm();res(true);};document.getElementById('confirmModal').classList.remove('hidden');});}
-function closeConfirm(){document.getElementById('confirmModal').classList.add('hidden');if(_cr){_cr(false);_cr=null;}}
-document.getElementById('confirmModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeConfirm();});
+function confirm2(title,body,icon){
+  icon=icon||'🗑';
+  return new Promise(function(res){
+    if(_cr){_cr(false);}
+    _cr=res;
+    document.getElementById('mIcon').textContent=icon;
+    document.getElementById('mTitle').textContent=title;
+    document.getElementById('mBody').textContent=body||title;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    var btn=document.getElementById('mConfirmBtn');
+    var newBtn=btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn,btn);
+    newBtn.onclick=function(){
+      document.getElementById('confirmModal').classList.add('hidden');
+      var r=_cr;_cr=null;if(r)r(true);
+    };
+  });
+}
+function closeConfirm(){
+  document.getElementById('confirmModal').classList.add('hidden');
+  var r=_cr;_cr=null;if(r)r(false);
+}
 
 /* ═══ LOGIN ═══ */
 let WHO=null;
@@ -688,7 +707,7 @@ function render(){
       </div>
       <div class="ic-acts">
         <button class="ia" onclick="startEdit('${item.id}')" title="Edit">✎</button>
-        <button class="ia del" onclick="confDelItem('${item.id}','${esc(item.name)}')" title="Delete">🗑</button>
+        <button class="ia del" onclick="confDelItem('${item.id}')" title="Delete">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -742,7 +761,7 @@ async function addItem(){
   finally{btn.disabled=false;btn.textContent='Add to List';}
 }
 async function toggleDone(id,done){try{await apiPatch(id,{done});const i=items.findIndex(x=>x.id===id);if(i!==-1)items[i].done=done;render();updateHeader();if(done)toast('Marked done ✓');}catch(e){console.warn(e);}}
-async function confDelItem(id,name){const ok=await confirm2('Delete item?',`Remove "${name}"?`);if(!ok)return;await apiDel(id);items=items.filter(i=>i.id!==id);render();updateHeader();toast('Item removed');}
+async function confDelItem(id){const item=items.find(i=>i.id===id);const name=item?item.name:'this item';const ok=await confirm2('Delete item?',`Remove "${name}"?`);if(!ok)return;await apiDel(id);items=items.filter(i=>i.id!==id);render();updateHeader();toast('Item removed');}
 async function confirmClearDone(){const n=items.filter(i=>i.done).length;if(!n){toast('No completed items');return;}const ok=await confirm2('Clear done items?',`Remove all ${n} completed item${n!==1?'s':''}?`);if(!ok)return;await apiClrDone();items=items.filter(i=>!i.done);render();updateHeader();toast('Cleared '+n+' item'+(n!==1?'s':''));}
 
 /* ═══ TEMPLATES ═══ */
