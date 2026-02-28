@@ -623,7 +623,9 @@ function getSession(){
   try { return JSON.parse(localStorage.getItem('fl_session')||'null'); } catch { return null; }
 }
 function saveSession(s){ localStorage.setItem('fl_session', JSON.stringify(s)); }
-function clearSession(){ localStorage.removeItem('fl_session'); }
+function clearSession(){ localStorage.removeItem('fl_session'); localStorage.removeItem('fl_family'); }
+function getStoredFamily(){ try { return JSON.parse(localStorage.getItem('fl_family')||'null'); } catch { return null; } }
+function saveFamily(f){ if(f) localStorage.setItem('fl_family', JSON.stringify(f)); else localStorage.removeItem('fl_family'); }
 
 function authHeaders(){
   return { 'Content-Type':'application/json', 'x-user-id': SESSION?.userId||'' };
@@ -745,7 +747,7 @@ async function leaveFamilyThenOpen(){
       } catch(e) { toast(e.message); return; }
       toast('Family deleted');
     } else {
-      const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋');
+      const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋', 'Leave');
       if (!ok) return;
       try {
         await apiFetch('/family/leave', { method: 'POST' });
@@ -836,7 +838,10 @@ function updateNoFamilyBanner(){
 
 /* ═══ ACCOUNT MENU ═══ */
 function toggleAccountMenu(){
-  document.getElementById('accountMenu').classList.toggle('open');
+  const menu = document.getElementById('accountMenu');
+  const isOpen = menu.classList.contains('open');
+  if (!isOpen) updateAccountMenu();
+  menu.classList.toggle('open');
 }
 function closeAccountMenu(){
   document.getElementById('accountMenu').classList.remove('open');
@@ -846,10 +851,17 @@ document.addEventListener('click', e => {
   const btn  = document.querySelector('.h-user');
   if (!menu.contains(e.target) && !btn.contains(e.target)) closeAccountMenu();
 });
-function updateAccountMenu(){
+async function updateAccountMenu(){
   if (!SESSION) return;
   document.getElementById('amName').textContent  = SESSION.name;
   document.getElementById('amEmail').textContent = SESSION.email;
+  // Always fetch fresh family info so ownerId is correct
+  if (SESSION.familyId) {
+    try {
+      const { user, family } = await apiFetch('/auth/me');
+      FAMILY = family;
+    } catch {}
+  }
   if (FAMILY) {
     document.getElementById('amFamBlock').style.display = '';
     document.getElementById('amNoFam').style.display = 'none';
@@ -858,7 +870,6 @@ function updateAccountMenu(){
     const isOwner = FAMILY.ownerId === SESSION.userId;
     document.getElementById('amFamBtn').textContent = isOwner ? '🗑 Delete Family' : '👋 Leave Family';
     document.getElementById('amFamBtn').classList.toggle('danger', isOwner);
-    // Load members if owner
     if (isOwner) loadMembers();
     else document.getElementById('amMembersBlock').style.display = 'none';
   } else {
@@ -886,7 +897,7 @@ async function loadMembers(){
 }
 
 async function kickMember(memberId, memberName){
-  const ok = await confirm2('Remove member?', `Remove ${memberName} from the family?`, '👤');
+  const ok = await confirm2('Remove member?', `Remove ${memberName} from the family?`, '👤', 'Remove');
   if (!ok) return;
   try {
     await apiFetch('/family/kick/'+memberId, { method:'POST' });
@@ -897,17 +908,19 @@ async function kickMember(memberId, memberName){
 
 /* ═══ CONFIRM ═══ */
 let _cr=null;
-function confirm2(title,body,icon){
-  icon=icon||'🗑';
-  return new Promise(res=>{
-    if(_cr)_cr(false);_cr=res;
-    document.getElementById('mIcon').textContent=icon;
-    document.getElementById('mTitle').textContent=title;
-    document.getElementById('mBody').textContent=body||title;
+function confirm2(title, body, icon, confirmLabel){
+  icon = icon || '🗑';
+  confirmLabel = confirmLabel || 'Delete';
+  return new Promise(res => {
+    if(_cr) _cr(false); _cr = res;
+    document.getElementById('mIcon').textContent = icon;
+    document.getElementById('mTitle').textContent = title;
+    document.getElementById('mBody').textContent = body || title;
+    document.getElementById('mConfirmBtn').textContent = confirmLabel;
     document.getElementById('confirmModal').classList.remove('hidden');
-    const btn=document.getElementById('mConfirmBtn');
-    const nb=btn.cloneNode(true);btn.parentNode.replaceChild(nb,btn);
-    nb.onclick=()=>{document.getElementById('confirmModal').classList.add('hidden');const r=_cr;_cr=null;if(r)r(true);};
+    const btn = document.getElementById('mConfirmBtn');
+    const nb = btn.cloneNode(true); btn.parentNode.replaceChild(nb, btn);
+    nb.onclick = () => { document.getElementById('confirmModal').classList.add('hidden'); const r=_cr; _cr=null; if(r) r(true); };
   });
 }
 function closeConfirm(){document.getElementById('confirmModal').classList.add('hidden');const r=_cr;_cr=null;if(r)r(false);}
