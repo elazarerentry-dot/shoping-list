@@ -16,7 +16,6 @@
     --text-soft: #b8a99a;
     --shadow: rgba(80,50,20,0.08);
 
-    /* Category colors */
     --food:     #ff6b6b; --food-bg:     #fff0f0;
     --toys:     #a78bfa; --toys-bg:     #f5f0ff;
     --clothes:  #f59e0b; --clothes-bg:  #fffbeb;
@@ -26,7 +25,6 @@
     --fun:      #f97316; --fun-bg:      #fff7ed;
     --other:    #6b7280; --other-bg:    #f9fafb;
 
-    /* Urgency */
     --urgent:   #ef4444;
     --normal:   #10b981;
     --sometime: #94a3b8;
@@ -41,7 +39,6 @@
     min-height: 100vh;
   }
 
-  /* Decorative blobs */
   body::before, body::after {
     content: '';
     position: fixed;
@@ -60,7 +57,103 @@
     bottom: -100px; left: -100px;
   }
 
-  /* Header */
+  /* ── LOGIN OVERLAY ── */
+  #loginOverlay {
+    position: fixed; inset: 0;
+    background: rgba(45,36,22,0.55);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  #loginOverlay.hidden { display: none; }
+
+  .login-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 16px 48px rgba(80,50,20,0.18);
+    text-align: center;
+  }
+  .login-card .big-emoji { font-size: 52px; margin-bottom: 0.75rem; display: block; animation: wave 2.5s ease-in-out infinite; }
+  .login-card h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+  .login-card p  { font-size: 13px; color: var(--text-mid); font-weight: 600; margin-bottom: 1.5rem; }
+
+  .login-names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .name-chip {
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-mid);
+  }
+  .name-chip:hover, .name-chip.selected {
+    border-color: #a78bfa;
+    background: #f5f0ff;
+    color: #a78bfa;
+  }
+
+  .login-divider {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .login-input-row {
+    display: flex;
+    gap: 8px;
+  }
+  .login-input-row input {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+  }
+  .login-input-row input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+
+  .login-go-btn {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #ff6b6b, #f97316);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 12px rgba(255,107,107,0.35);
+    white-space: nowrap;
+  }
+  .login-go-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(255,107,107,0.45); }
+
+  /* ── HEADER ── */
   header {
     position: sticky;
     top: 0;
@@ -92,18 +185,8 @@
     75% { transform: rotate(-8deg); }
   }
 
-  .header-title h1 {
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-
-  .header-title span {
-    font-size: 13px;
-    color: var(--text-soft);
-    font-weight: 600;
-  }
+  .header-title h1 { font-size: 22px; font-weight: 900; color: var(--text); letter-spacing: -0.3px; }
+  .header-title span { font-size: 13px; color: var(--text-soft); font-weight: 600; }
 
   .header-right {
     display: flex;
@@ -120,7 +203,23 @@
     border-radius: 20px;
   }
 
-  /* Layout */
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .user-pill:hover { border-color: #a78bfa; color: #a78bfa; }
+
+  /* ── LAYOUT ── */
   .app {
     position: relative;
     z-index: 1;
@@ -133,7 +232,10 @@
     align-items: start;
   }
 
-  /* Add Form */
+  /* ── SIDEBAR ── */
+  aside { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* ── ADD FORM ── */
   .add-form {
     background: var(--surface);
     border: 2px solid var(--border);
@@ -143,6 +245,38 @@
     top: 84px;
     box-shadow: 0 4px 24px var(--shadow);
   }
+
+  /* Tab switcher inside sidebar */
+  .sidebar-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 1.25rem;
+  }
+  .sidebar-tab {
+    flex: 1;
+    padding: 7px 4px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-mid);
+  }
+  .sidebar-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
   .form-title {
     font-size: 16px;
@@ -154,10 +288,7 @@
     gap: 8px;
   }
 
-  .field {
-    margin-bottom: 1rem;
-  }
-
+  .field { margin-bottom: 1rem; }
   .field label {
     display: block;
     font-size: 12px;
@@ -168,7 +299,7 @@
     margin-bottom: 5px;
   }
 
-  .field input, .field textarea {
+  .field input, .field textarea, .field select {
     width: 100%;
     border: 2px solid var(--border);
     border-radius: 10px;
@@ -182,16 +313,12 @@
     transition: border-color 0.15s, box-shadow 0.15s;
   }
 
-  .field input:focus, .field textarea:focus {
+  .field input:focus, .field textarea:focus, .field select:focus {
     border-color: #a78bfa;
     box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
   }
 
-  .field textarea {
-    resize: vertical;
-    min-height: 70px;
-    line-height: 1.5;
-  }
+  .field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
 
   /* Category grid */
   .cat-grid {
@@ -229,12 +356,8 @@
   .cat-btn.active-fun      { border-color: var(--fun);     background: var(--fun-bg);     color: var(--fun); }
   .cat-btn.active-other    { border-color: var(--other);   background: var(--other-bg);   color: var(--other); }
 
-  /* Urgency selector */
-  .urgency-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
+  /* Urgency */
+  .urgency-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
   .urg-btn {
     padding: 8px;
@@ -270,16 +393,263 @@
     letter-spacing: 0.3px;
     box-shadow: 0 4px 16px rgba(255,107,107,0.35);
   }
-
-  .submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255,107,107,0.45);
-  }
-
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,107,0.45); }
   .submit-btn:active { transform: scale(0.98); }
   .submit-btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
 
-  /* Right column */
+  /* ── SAVED LISTS PANEL ── */
+  .saved-list-panel {}
+
+  .saved-list-name-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+  .saved-list-name-row input {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+  }
+  .saved-list-name-row input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+
+  .template-items-area {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    min-height: 80px;
+    padding: 8px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* ── TEMPLATE ITEM ROWS (editable) ── */
+  .template-item-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 8px;
+    animation: popIn 0.15s ease;
+  }
+
+  .ti-edit-name {
+    border: none;
+    background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    width: 100%;
+    min-width: 0;
+    padding: 2px 4px;
+    border-radius: 6px;
+  }
+  .ti-edit-name:focus { background: var(--bg); box-shadow: 0 0 0 2px rgba(167,139,250,0.25); }
+
+  .ti-edit-cat {
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-mid);
+    border-radius: 6px;
+    padding: 3px 4px;
+    outline: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .ti-edit-cat:focus { border-color: #a78bfa; }
+
+  .ti-del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-soft);
+    font-size: 15px;
+    padding: 3px 5px;
+    border-radius: 6px;
+    transition: all 0.1s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .ti-del-btn:hover { color: #ef4444; background: #fff1f2; }
+
+  /* ── ADD ITEM TO TEMPLATE (stacked for mobile) ── */
+  .template-item-adder {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0.75rem;
+  }
+
+  .ti-adder-name {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--bg);
+    outline: none;
+  }
+  .ti-adder-name:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+
+  .ti-adder-bottom {
+    display: flex;
+    gap: 6px;
+  }
+
+  .ti-adder-bottom select {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-mid);
+    background: var(--bg);
+    outline: none;
+    cursor: pointer;
+    min-width: 0;
+  }
+  .ti-adder-bottom select:focus { border-color: #a78bfa; }
+
+  .add-ti-btn {
+    flex-shrink: 0;
+    padding: 9px 18px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .add-ti-btn:hover { background: #a78bfa; }
+
+  .save-template-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #a78bfa, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 14px rgba(167,139,250,0.35);
+    margin-bottom: 1.25rem;
+  }
+  .save-template-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(167,139,250,0.45); }
+
+  /* Saved list cards */
+  .saved-lists-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .saved-cards { display: flex; flex-direction: column; gap: 8px; }
+
+  .saved-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: all 0.15s;
+  }
+  .saved-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px var(--shadow); }
+
+  .saved-card-info { flex: 1; min-width: 0; }
+  .saved-card-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .saved-card-meta { font-size: 11px; color: var(--text-soft); font-weight: 600; margin-top: 2px; }
+
+  .load-list-btn {
+    padding: 6px 10px;
+    background: linear-gradient(135deg, #ff6b6b, #f97316);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(255,107,107,0.3);
+  }
+  .load-list-btn:hover { transform: scale(1.04); }
+  .load-list-btn:disabled { opacity: 0.6; transform: none; cursor: default; }
+
+  .saved-card-preview {
+    flex-direction: column;
+    gap: 4px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 8px 12px 10px;
+    margin-top: -8px;
+  }
+
+  .saved-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .saved-preview-item:last-child { border-bottom: none; }
+  .saved-preview-item .ti-cat { margin-left: auto; color: var(--text-soft); font-size: 11px; }
+
+  .no-saved {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── RIGHT COL ── */
   .right-col { min-width: 0; }
 
   /* Filter tabs */
@@ -307,12 +677,7 @@
     color: var(--text-mid);
     white-space: nowrap;
   }
-
-  .filter-tab.active {
-    background: var(--text);
-    color: white;
-    border-color: var(--text);
-  }
+  .filter-tab.active { background: var(--text); color: white; border-color: var(--text); }
 
   /* Toolbar */
   .toolbar {
@@ -323,12 +688,7 @@
     flex-wrap: wrap;
     gap: 8px;
   }
-
-  .result-count {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-soft);
-  }
+  .result-count { font-size: 13px; font-weight: 700; color: var(--text-soft); }
 
   .clear-done-btn {
     padding: 7px 14px;
@@ -342,15 +702,10 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-
   .clear-done-btn:hover { border-color: #ef4444; color: #ef4444; }
 
   /* Item cards */
-  .items-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .items-grid { display: flex; flex-direction: column; gap: 10px; }
 
   .item-card {
     background: var(--surface);
@@ -375,8 +730,7 @@
   .item-card.done .item-name { text-decoration: line-through; }
 
   .check-btn {
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     border: 2.5px solid var(--border);
     background: transparent;
@@ -389,7 +743,6 @@
     font-size: 14px;
     margin-top: 1px;
   }
-
   .check-btn:hover { border-color: #10b981; background: #ecfdf5; }
   .check-btn.checked { background: #10b981; border-color: #10b981; color: white; }
 
@@ -403,23 +756,9 @@
     margin-bottom: 4px;
   }
 
-  .item-name {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--text);
-    flex: 1;
-    min-width: 0;
-  }
+  .item-name { font-size: 15px; font-weight: 800; color: var(--text); flex: 1; min-width: 0; }
 
-  .cat-pill {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 9px;
-    border-radius: 20px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
+  .cat-pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
   .cat-pill-food     { background: var(--food-bg);    color: var(--food); }
   .cat-pill-toys     { background: var(--toys-bg);    color: var(--toys); }
   .cat-pill-clothes  { background: var(--clothes-bg); color: var(--clothes); }
@@ -429,23 +768,12 @@
   .cat-pill-fun      { background: var(--fun-bg);     color: var(--fun); }
   .cat-pill-other    { background: var(--other-bg);   color: var(--other); }
 
-  .urg-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+  .urg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .urg-dot-urgent   { background: var(--urgent); }
   .urg-dot-normal   { background: var(--normal); }
   .urg-dot-sometime { background: var(--sometime); }
 
-  .item-note {
-    font-size: 13px;
-    color: var(--text-mid);
-    font-family: 'Nunito Sans', sans-serif;
-    margin-top: 3px;
-    line-height: 1.4;
-  }
+  .item-note { font-size: 13px; color: var(--text-mid); font-family: 'Nunito Sans', sans-serif; margin-top: 3px; line-height: 1.4; }
 
   .item-meta {
     display: flex;
@@ -456,35 +784,17 @@
     color: var(--text-soft);
     font-weight: 600;
   }
-
-  .item-who {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+  .item-who { display: flex; align-items: center; gap: 4px; }
 
   .delete-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-soft);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-    border-radius: 8px;
-    transition: all 0.15s;
-    flex-shrink: 0;
-    margin-top: -2px;
+    background: transparent; border: none; color: var(--text-soft);
+    cursor: pointer; font-size: 16px; padding: 4px; border-radius: 8px;
+    transition: all 0.15s; flex-shrink: 0; margin-top: -2px;
   }
-
   .delete-btn:hover { color: #ef4444; background: #fff1f2; }
 
   /* Empty state */
-  .empty {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--text-soft);
-  }
-
+  .empty { text-align: center; padding: 4rem 2rem; color: var(--text-soft); }
   .empty-emoji { font-size: 56px; margin-bottom: 1rem; }
   .empty-msg { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
   .empty-sub { font-size: 13px; font-weight: 600; }
@@ -492,8 +802,7 @@
   /* Toast */
   .toast {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    bottom: 1.5rem; right: 1.5rem;
     background: var(--text);
     color: white;
     padding: 12px 20px;
@@ -519,6 +828,28 @@
 </head>
 <body>
 
+<!-- ── LOGIN OVERLAY ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <span class="big-emoji">🏠</span>
+    <h2>Our Family List</h2>
+    <p>Who are you? We'll remember you on this device.</p>
+
+    <div class="login-names" id="savedNameChips">
+      <!-- Populated from localStorage -->
+    </div>
+
+    <div class="login-divider">or type a new name</div>
+
+    <div class="login-input-row">
+      <input id="newNameInput" type="text" placeholder="Your name..." maxlength="30"
+             onkeydown="if(event.key==='Enter') loginWithInput()">
+      <button class="login-go-btn" onclick="loginWithInput()">Let's go!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
 <header>
   <div class="header-title">
     <span class="emoji">🏠</span>
@@ -530,61 +861,119 @@
   <div class="header-right">
     <span class="count-badge" id="openCount">0</span>
     <span style="font-size:13px; font-weight:700; color:var(--text-mid)">things needed</span>
+    <button class="user-pill" id="userPill" onclick="showLogin()" title="Switch user">
+      👤 <span id="userPillName">...</span>
+    </button>
   </div>
 </header>
 
 <div class="app">
-  <!-- Add Form -->
+  <!-- ── SIDEBAR ── -->
   <aside>
     <div class="add-form">
-      <div class="form-title">✏️ Add Something</div>
 
-      <div class="field">
-        <label>Who's asking?</label>
-        <input id="fWho" type="text" placeholder="Mum, Dad, Emma, Liam...">
+      <!-- Tab switcher -->
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" id="tabAddItem" onclick="showTab('item')">✏️ Add Item</button>
+        <button class="sidebar-tab"        id="tabLists"    onclick="showTab('lists')">📋 My Lists</button>
       </div>
 
-      <div class="field">
-        <label>What do we need?</label>
-        <input id="fName" type="text" placeholder="e.g. Milk, Lego set, Shampoo...">
+      <!-- ── TAB: ADD SINGLE ITEM ── -->
+      <div class="tab-panel active" id="panelItem">
+        <div class="field">
+          <label>Who's asking?</label>
+          <input id="fWho" type="text" placeholder="Mum, Dad, Emma, Liam..." readonly
+                 style="background:#f5f0ff; cursor:default; color:#a78bfa; font-weight:800;">
+        </div>
+
+        <div class="field">
+          <label>What do we need?</label>
+          <input id="fName" type="text" placeholder="e.g. Milk, Lego set, Shampoo...">
+        </div>
+
+        <div class="field">
+          <label>Category</label>
+          <div class="cat-grid">
+            <button class="cat-btn" data-cat="food"    onclick="pickCat(this)"><span class="cat-emoji">🛒</span>Food</button>
+            <button class="cat-btn" data-cat="toys"    onclick="pickCat(this)"><span class="cat-emoji">🧸</span>Toys</button>
+            <button class="cat-btn" data-cat="clothes" onclick="pickCat(this)"><span class="cat-emoji">👕</span>Clothes</button>
+            <button class="cat-btn" data-cat="school"  onclick="pickCat(this)"><span class="cat-emoji">🎒</span>School</button>
+            <button class="cat-btn" data-cat="house"   onclick="pickCat(this)"><span class="cat-emoji">🏡</span>House</button>
+            <button class="cat-btn" data-cat="health"  onclick="pickCat(this)"><span class="cat-emoji">💊</span>Health</button>
+            <button class="cat-btn" data-cat="fun"     onclick="pickCat(this)"><span class="cat-emoji">🎉</span>Fun</button>
+            <button class="cat-btn" data-cat="other"   onclick="pickCat(this)"><span class="cat-emoji">📦</span>Other</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>When do we need it?</label>
+          <div class="urgency-row">
+            <button class="urg-btn" data-urg="urgent"   onclick="pickUrg(this)">🔴 Now!</button>
+            <button class="urg-btn" data-urg="normal"   onclick="pickUrg(this)">🟢 Soon</button>
+            <button class="urg-btn" data-urg="sometime" onclick="pickUrg(this)">⚪ Sometime</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Note (optional)</label>
+          <textarea id="fNote" placeholder="Any details, brand, size, quantity..."></textarea>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="addItem()">＋ Add to List</button>
       </div>
 
-      <div class="field">
-        <label>Category</label>
-        <div class="cat-grid">
-          <button class="cat-btn" data-cat="food"    onclick="pickCat(this)"><span class="cat-emoji">🛒</span>Food</button>
-          <button class="cat-btn" data-cat="toys"    onclick="pickCat(this)"><span class="cat-emoji">🧸</span>Toys</button>
-          <button class="cat-btn" data-cat="clothes" onclick="pickCat(this)"><span class="cat-emoji">👕</span>Clothes</button>
-          <button class="cat-btn" data-cat="school"  onclick="pickCat(this)"><span class="cat-emoji">🎒</span>School</button>
-          <button class="cat-btn" data-cat="house"   onclick="pickCat(this)"><span class="cat-emoji">🏡</span>House</button>
-          <button class="cat-btn" data-cat="health"  onclick="pickCat(this)"><span class="cat-emoji">💊</span>Health</button>
-          <button class="cat-btn" data-cat="fun"     onclick="pickCat(this)"><span class="cat-emoji">🎉</span>Fun</button>
-          <button class="cat-btn" data-cat="other"   onclick="pickCat(this)"><span class="cat-emoji">📦</span>Other</button>
+      <!-- ── TAB: MY SAVED LISTS ── -->
+      <div class="tab-panel" id="panelLists">
+
+        <div class="form-title">📋 Build a List</div>
+
+        <!-- List name -->
+        <div class="saved-list-name-row">
+          <input id="tplName" placeholder="List name, e.g. Weekly Shop..." maxlength="40">
+        </div>
+
+        <!-- Items already added to template -->
+        <div class="template-items-area" id="tplItemsArea">
+          <div id="tplEmpty" style="text-align:center; color:var(--text-soft); font-size:12px; font-weight:600; padding:1rem 0;">
+            Add items below 👇
+          </div>
+        </div>
+
+        <!-- Row to add an item to template -->
+        <div class="template-item-adder">
+          <input class="ti-adder-name" id="tiName" placeholder="Item name..." maxlength="60"
+                 onkeydown="if(event.key==='Enter') addTemplateItem()">
+          <div class="ti-adder-bottom">
+            <select id="tiCat">
+              <option value="food">🛒 Food</option>
+              <option value="toys">🧸 Toys</option>
+              <option value="clothes">👕 Clothes</option>
+              <option value="school">🎒 School</option>
+              <option value="house">🏡 House</option>
+              <option value="health">💊 Health</option>
+              <option value="fun">🎉 Fun</option>
+              <option value="other">📦 Other</option>
+            </select>
+            <button class="add-ti-btn" onclick="addTemplateItem()">＋ Add item</button>
+          </div>
+        </div>
+
+        <button class="save-template-btn" onclick="saveTemplate()">💾 Save this list</button>
+
+        <!-- Saved list cards -->
+        <div class="saved-lists-title">Saved Lists</div>
+        <div class="saved-cards" id="savedCards">
+          <div class="no-saved">No saved lists yet. Build one above!</div>
         </div>
       </div>
 
-      <div class="field">
-        <label>When do we need it?</label>
-        <div class="urgency-row">
-          <button class="urg-btn" data-urg="urgent"   onclick="pickUrg(this)">🔴 Now!</button>
-          <button class="urg-btn" data-urg="normal"   onclick="pickUrg(this)">🟢 Soon</button>
-          <button class="urg-btn" data-urg="sometime" onclick="pickUrg(this)">⚪ Sometime</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Note (optional)</label>
-        <textarea id="fNote" placeholder="Any details, brand, size, quantity..."></textarea>
-      </div>
-
-      <button class="submit-btn" id="submitBtn" onclick="addItem()">＋ Add to List</button>
     </div>
   </aside>
 
-  <!-- List -->
+  <!-- ── MAIN LIST ── -->
   <div class="right-col">
     <div class="filter-scroll" id="filterRow">
-      <button class="filter-tab active" data-f="all" onclick="setFilter(this)">🏠 All</button>
+      <button class="filter-tab active" data-f="all"     onclick="setFilter(this)">🏠 All</button>
       <button class="filter-tab" data-f="food"    onclick="setFilter(this)">🛒 Food</button>
       <button class="filter-tab" data-f="toys"    onclick="setFilter(this)">🧸 Toys</button>
       <button class="filter-tab" data-f="clothes" onclick="setFilter(this)">👕 Clothes</button>
@@ -610,25 +999,108 @@ const API = (window.location.hostname === 'localhost' || window.location.hostnam
   ? 'http://localhost:3001/api'
   : '/api';
 
+/* ══════════════════════════════
+   LOGIN / USER
+══════════════════════════════ */
+let currentUser = null;
+
+function initLogin() {
+  currentUser = localStorage.getItem('fl_currentUser');
+  if (currentUser) {
+    applyUser(currentUser, false);
+  } else {
+    renderLoginChips();
+    document.getElementById('loginOverlay').classList.remove('hidden');
+  }
+}
+
+function renderLoginChips() {
+  const names = getSavedNames();
+  const container = document.getElementById('savedNameChips');
+  if (names.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = names.map(n =>
+    `<button class="name-chip" onclick="loginAs('${esc(n)}')">${esc(n)}</button>`
+  ).join('');
+}
+
+function getSavedNames() {
+  try { return JSON.parse(localStorage.getItem('fl_knownNames') || '[]'); } catch { return []; }
+}
+
+function addKnownName(name) {
+  const names = getSavedNames();
+  if (!names.includes(name)) {
+    names.unshift(name);
+    if (names.length > 8) names.pop(); // keep last 8 names
+    localStorage.setItem('fl_knownNames', JSON.stringify(names));
+  }
+}
+
+function loginAs(name) {
+  applyUser(name, true);
+}
+
+function loginWithInput() {
+  const name = document.getElementById('newNameInput').value.trim();
+  if (!name) { toast('👤 Type your name first!'); return; }
+  applyUser(name, true);
+}
+
+function applyUser(name, save) {
+  currentUser = name;
+  if (save) {
+    localStorage.setItem('fl_currentUser', name);
+    addKnownName(name);
+  }
+  document.getElementById('fWho').value = name;
+  document.getElementById('userPillName').textContent = name;
+  document.getElementById('loginOverlay').classList.add('hidden');
+  load();
+}
+
+function showLogin() {
+  renderLoginChips();
+  document.getElementById('newNameInput').value = '';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+
+/* ══════════════════════════════
+   SIDEBAR TABS
+══════════════════════════════ */
+function showTab(tab) {
+  document.getElementById('panelItem').classList.toggle('active', tab === 'item');
+  document.getElementById('panelLists').classList.toggle('active', tab === 'lists');
+  document.getElementById('tabAddItem').classList.toggle('active', tab === 'item');
+  document.getElementById('tabLists').classList.toggle('active', tab === 'lists');
+  if (tab === 'lists') renderSavedCards();
+}
+
+/* ══════════════════════════════
+   ADD SINGLE ITEM
+══════════════════════════════ */
 let items = [];
 let selectedCat = null;
 let selectedUrg = 'normal';
 let activeFilter = 'all';
 
-// Set default urgency to normal
-document.querySelector('[data-urg="normal"]').click();
-
 const CAT_EMOJI = { food:'🛒', toys:'🧸', clothes:'👕', school:'🎒', house:'🏡', health:'💊', fun:'🎉', other:'📦' };
 const URG_LABEL = { urgent:'🔴 Need it now', normal:'🟢 Get soon', sometime:'⚪ No rush' };
 
+// Default urgency
+document.querySelector('[data-urg="normal"]').classList.add('active-normal');
+selectedUrg = 'normal';
+
 function pickCat(btn) {
-  document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn');
+  document.querySelectorAll('#panelItem .cat-btn').forEach(b => b.className = 'cat-btn');
   selectedCat = btn.dataset.cat;
   btn.className = `cat-btn active-${selectedCat}`;
 }
 
 function pickUrg(btn) {
-  document.querySelectorAll('.urg-btn').forEach(b => b.className = 'urg-btn');
+  document.querySelectorAll('#panelItem .urg-btn').forEach(b => b.className = 'urg-btn');
   selectedUrg = btn.dataset.urg;
   btn.className = `urg-btn active-${selectedUrg}`;
 }
@@ -660,7 +1132,6 @@ function updateHeader() {
 
 function render() {
   const list = document.getElementById('itemsList');
-
   let filtered = [...items];
 
   if (activeFilter === 'urgent') {
@@ -669,7 +1140,6 @@ function render() {
     filtered = filtered.filter(i => i.category === activeFilter);
   }
 
-  // Sort: urgent first, then undone, then by time
   filtered.sort((a, b) => {
     if (!a.done && b.done) return -1;
     if (a.done && !b.done) return 1;
@@ -682,7 +1152,6 @@ function render() {
     `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
 
   if (filtered.length === 0) {
-    const msgs = ['All clear here! ✨', 'Nothing here yet 😊', 'Add something above! ☝️'];
     list.innerHTML = `
       <div class="empty">
         <div class="empty-emoji">${activeFilter === 'all' ? '🎉' : CAT_EMOJI[activeFilter] || '🔍'}</div>
@@ -720,7 +1189,7 @@ async function addItem() {
   const name = document.getElementById('fName').value.trim();
   const note = document.getElementById('fNote').value.trim();
 
-  if (!who)  { toast('👤 Who is asking?'); return; }
+  if (!who)  { toast('👤 Please log in first'); showLogin(); return; }
   if (!name) { toast('📝 What do you need?'); return; }
   if (!selectedCat) { toast('📂 Pick a category!'); return; }
 
@@ -783,6 +1252,195 @@ async function clearDone() {
   } catch(e) { toast('⚠️ Error'); }
 }
 
+/* ══════════════════════════════
+   SAVED LIST TEMPLATES
+══════════════════════════════ */
+let currentTemplateItems = []; // items being built
+
+function getSavedTemplates() {
+  try { return JSON.parse(localStorage.getItem('fl_savedLists') || '[]'); } catch { return []; }
+}
+
+function setSavedTemplates(arr) {
+  localStorage.setItem('fl_savedLists', JSON.stringify(arr));
+}
+
+function addTemplateItem() {
+  const name = document.getElementById('tiName').value.trim();
+  const cat  = document.getElementById('tiCat').value;
+  if (!name) { toast('📝 Type an item name first'); return; }
+
+  currentTemplateItems.push({ name, category: cat });
+  document.getElementById('tiName').value = '';
+  document.getElementById('tiName').focus();
+  renderTemplateItems();
+}
+
+function removeTemplateItem(idx) {
+  // Sync any edits before removing
+  syncTemplateEdits();
+  currentTemplateItems.splice(idx, 1);
+  renderTemplateItems();
+}
+
+// Read current values from the live DOM back into the array
+function syncTemplateEdits() {
+  const rows = document.querySelectorAll('#tplItemsArea .template-item-row');
+  rows.forEach((row, i) => {
+    const nameEl = row.querySelector('.ti-edit-name');
+    const catEl  = row.querySelector('.ti-edit-cat');
+    if (nameEl && currentTemplateItems[i]) {
+      currentTemplateItems[i].name = nameEl.value.trim() || currentTemplateItems[i].name;
+    }
+    if (catEl && currentTemplateItems[i]) {
+      currentTemplateItems[i].category = catEl.value;
+    }
+  });
+}
+
+const CAT_OPTIONS = ['food','toys','clothes','school','house','health','fun','other'];
+
+function renderTemplateItems() {
+  const area = document.getElementById('tplItemsArea');
+  if (currentTemplateItems.length === 0) {
+    area.innerHTML = `<div style="text-align:center; color:var(--text-soft); font-size:12px; font-weight:600; padding:1rem 0;">Add items below 👇</div>`;
+    return;
+  }
+  area.innerHTML = currentTemplateItems.map((it, i) => `
+    <div class="template-item-row" data-idx="${i}">
+      <input
+        class="ti-edit-name"
+        value="${esc(it.name)}"
+        maxlength="60"
+        onchange="syncTemplateEdits()"
+        placeholder="Item name..."
+      >
+      <select class="ti-edit-cat" onchange="syncTemplateEdits()">
+        ${CAT_OPTIONS.map(c => `<option value="${c}" ${c === it.category ? 'selected' : ''}>${CAT_EMOJI[c]} ${cap(c)}</option>`).join('')}
+      </select>
+      <button class="ti-del-btn" onclick="removeTemplateItem(${i})" title="Remove item">✕</button>
+    </div>
+  `).join('');
+}
+
+function saveTemplate() {
+  syncTemplateEdits();
+  const name = document.getElementById('tplName').value.trim();
+  if (!name) { toast('📋 Give your list a name first!'); return; }
+  if (currentTemplateItems.length === 0) { toast('Add at least one item to the list!'); return; }
+  // Filter out blanked-out items
+  currentTemplateItems = currentTemplateItems.filter(it => it.name.trim());
+
+  const templates = getSavedTemplates();
+  templates.unshift({
+    id: Date.now().toString(),
+    name,
+    items: [...currentTemplateItems],
+    savedBy: currentUser || 'You',
+    savedAt: new Date().toISOString()
+  });
+  setSavedTemplates(templates);
+
+  // Reset builder
+  currentTemplateItems = [];
+  document.getElementById('tplName').value = '';
+  renderTemplateItems();
+  renderSavedCards();
+  toast(`💾 Saved "${name}"!`);
+}
+
+async function loadTemplate(id) {
+  const templates = getSavedTemplates();
+  const tpl = templates.find(t => t.id === id);
+  if (!tpl) { toast('⚠️ List not found'); return; }
+
+  const who = currentUser;
+  if (!who) { toast('👤 Please log in first'); showLogin(); return; }
+
+  // Disable all load buttons while working
+  document.querySelectorAll('.load-list-btn').forEach(b => { b.disabled = true; b.textContent = '⏳ Adding...'; });
+
+  let added = 0;
+  for (const it of tpl.items) {
+    try {
+      const r = await fetch(`${API}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: it.name, who, category: it.category || 'other', urgency: 'normal', note: '' })
+      });
+      if (r.ok) {
+        const item = await r.json();
+        items.unshift(item);
+        added++;
+      }
+    } catch(e) { /* skip failed item */ }
+  }
+
+  render();
+  updateHeader();
+
+  // Re-enable buttons
+  document.querySelectorAll('.load-list-btn').forEach(b => { b.disabled = false; b.textContent = '＋ Add All'; });
+
+  toast(`✅ Added ${added} item${added !== 1 ? 's' : ''} from "${tpl.name}"!`);
+
+  // Switch to the list view so user sees the added items
+  showTab('item');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteTemplate(id) {
+  const templates = getSavedTemplates().filter(t => t.id !== id);
+  setSavedTemplates(templates);
+  renderSavedCards();
+  toast('🗑 List removed');
+}
+
+function renderSavedCards() {
+  const container = document.getElementById('savedCards');
+  const templates = getSavedTemplates();
+
+  if (templates.length === 0) {
+    container.innerHTML = '<div class="no-saved">No saved lists yet. Build one above!</div>';
+    return;
+  }
+
+  container.innerHTML = templates.map(t => `
+    <div class="saved-card">
+      <div class="saved-card-info" onclick="toggleCardExpand('${t.id}')" style="cursor:pointer;">
+        <div class="saved-card-name">
+          <span id="arrow-${t.id}" style="display:inline-block; transition:transform 0.2s; margin-right:4px;">▸</span>${esc(t.name)}
+        </div>
+        <div class="saved-card-meta">${t.items.length} item${t.items.length !== 1 ? 's' : ''} · by ${esc(t.savedBy)}</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-items:stretch;">
+        <button class="load-list-btn" data-load-id="${t.id}" onclick="loadTemplate('${t.id}')">＋ Add All</button>
+        <button class="del-saved-btn" onclick="deleteTemplate('${t.id}')" title="Delete list" style="align-self:center;">🗑</button>
+      </div>
+    </div>
+    <div class="saved-card-preview" id="preview-${t.id}" style="display:none;">
+      ${t.items.map(it => `
+        <div class="saved-preview-item">
+          <span>${CAT_EMOJI[it.category] || '📦'}</span>
+          <span>${esc(it.name)}</span>
+          <span class="ti-cat">${cap(it.category)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function toggleCardExpand(id) {
+  const preview = document.getElementById(`preview-${id}`);
+  const arrow   = document.getElementById(`arrow-${id}`);
+  const open = preview.style.display !== 'none';
+  preview.style.display = open ? 'none' : 'flex';
+  arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+/* ══════════════════════════════
+   UTILS
+══════════════════════════════ */
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function timeAgo(iso) {
@@ -792,7 +1450,6 @@ function timeAgo(iso) {
   if (s < 86400) return `${Math.floor(s/3600)}h ago`;
   return new Date(iso).toLocaleDateString();
 }
-
 function toast(msg) {
   const t = document.createElement('div');
   t.className = 'toast';
@@ -807,8 +1464,10 @@ document.addEventListener('keydown', e => {
 });
 
 // Auto-refresh every 20s
-setInterval(load, 20000);
-load();
+setInterval(() => { if (currentUser) load(); }, 20000);
+
+// Boot
+initLogin();
 </script>
 </body>
 </html>
