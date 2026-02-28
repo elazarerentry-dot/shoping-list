@@ -49,7 +49,7 @@ npm start
 | Step | What happens |
 |------|-------------|
 | Sign up | Creates an account with your name, email & hashed password |
-| Create Family | Makes a new family, gives you an invite code like `BLUE-7492` |
+| Create Family | Makes a new family, gives you an invite code like `BLUE-7491` |
 | Share code | Tell family members your invite code + the family password |
 | Join Family | Enter the code + password to join — you now share the same list |
 | Add items | Items are saved to the database and visible to all family members |
