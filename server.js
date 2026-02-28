@@ -11,7 +11,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // ─── DATABASE SETUP ────────────────────────────────────────────────────────
-const db = new Database(path.join(__dirname, 'familylist.db'));
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'familylist.db');
+const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
 db.exec(`
