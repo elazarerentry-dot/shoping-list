@@ -827,6 +827,7 @@ function onFamilyJoined(){
   updateAccountMenu();
   updateNoFamilyBanner();
   load();
+  loadLists();
   startSSE();
 }
 
@@ -931,7 +932,7 @@ function sbTab(t){
   document.getElementById('sbPanelLists').classList.toggle('active',t==='lists');
   document.getElementById('sbTabAdd').classList.toggle('active',t==='add');
   document.getElementById('sbTabLists').classList.toggle('active',t==='lists');
-  if(t==='lists')renderSavedCards();
+  if(t==='lists'){ loadLists(); }
 }
 
 /* ═══ MOBILE NAV ═══ */
@@ -1017,16 +1018,16 @@ async function confirmClearDone(){
 
 /* ═══ RENDER ═══ */
 function renderListFilters(){
-  const tpls=getTpls();const row=document.getElementById('listFilterRow');
-  if(!tpls.length){row.style.display='none';return;}
+  const row=document.getElementById('listFilterRow');
+  if(!serverLists.length){row.style.display='none';return;}
   row.style.display='flex';
-  row.innerHTML='<span class="lf-label">Lists:</span>'+tpls.map(t=>`<button class="f-chip list-chip${activeListF===t.id?' active':''}" onclick="setListFilter('${t.id}')">${esc(t.name)}</button>`).join('');
+  row.innerHTML='<span class="lf-label">Lists:</span>'+serverLists.map(t=>`<button class="f-chip list-chip${activeListF===t.id?' active':''}" onclick="setListFilter('${t.id}')">${esc(t.name)}</button>`).join('');
 }
 
 function render(){
   const el=document.getElementById('itemsList');
   let f=[...items];
-  if(activeListF){const t=getTpls().find(x=>x.id===activeListF);if(t){const ns=new Set(t.items.map(i=>i.name.toLowerCase()));f=f.filter(i=>ns.has(i.name.toLowerCase()));}}
+  if(activeListF){f=f.filter(i=>i.list_id===activeListF);}
   else if(activeF==='urgent'){f=f.filter(i=>i.urgency==='urgent'&&!i.done);}
   else if(activeF!=='all'){f=f.filter(i=>i.category===activeF);}
   f.sort((a,b)=>{if(!a.done&&b.done)return -1;if(a.done&&!b.done)return 1;const o={urgent:0,normal:1,sometime:2};if(!a.done&&!b.done)return o[a.urgency]-o[b.urgency];return 0;});
@@ -1083,9 +1084,18 @@ async function saveEdit(id){
 }
 
 /* ═══ TEMPLATES (stored in localStorage — per device) ═══ */
-let tplItems=[],editTplId=null;
-function getTpls(){try{return JSON.parse(localStorage.getItem('fl_tpls')||'[]');}catch{return[];}}
-function setTpls(a){localStorage.setItem('fl_tpls',JSON.stringify(a));}
+/* ═══ LISTS (server-based, shared with family) ═══ */
+let serverLists = [];
+let tplItems = [], editTplId = null;
+
+async function loadLists(){
+  if (!SESSION?.familyId) return;
+  try {
+    serverLists = await apiFetch('/lists');
+    renderSavedCards();
+    renderListFilters();
+  } catch(e){ console.warn(e); }
+}
 
 function addTplItem(){
   const name=document.getElementById('tiName').value.trim();
@@ -1116,35 +1126,42 @@ function renderTplItems(){
     <div class="ti-row">
       <div class="ti-top">
         <input class="ti-n" value="${esc(it.name)}" maxlength="80" onchange="syncTpl()" placeholder="Item…">
-        <select class="ti-c" onchange="syncTpl()">${CATS.map(c=>`<option value="${c}"${c===it.category?' selected':''}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
-        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}>${UL[u]}</option>`).join('')}</select>
+        <select class="ti-c" onchange="syncTpl()">${CATS.map(c=>`<option value="${c}"${c===it.category?' selected':''}}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
+        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}}>${UL[u]}</option>`).join('')}</select>
         <button class="ti-del" onclick="remTplItem(${i})">✕</button>
       </div>
-      <input class="ti-note-inp" value="${esc(it.note||'')}" placeholder="Note…" onchange="syncTpl()">
+      <input class="ti-note-inp" value="${esc(it.note||'')}'  placeholder="Note…" onchange="syncTpl()">
     </div>`).join('');
 }
-function saveTemplate(){
+
+async function saveTemplate(){
   syncTpl();
   const name=document.getElementById('tplName').value.trim();
   if(!name){toast('Give your list a name');return;}
   tplItems=tplItems.filter(it=>it.name.trim());
   if(!tplItems.length){toast('Add at least one item');return;}
-  let tpls=getTpls();
-  if(editTplId){
-    tpls=tpls.map(t=>t.id===editTplId?{...t,name,items:[...tplItems],savedAt:new Date().toISOString()}:t);
-    editTplId=null;
-    document.getElementById('listBuilderLabel').textContent='New list';
-    document.getElementById('saveListBtn').textContent='Save List';
-  } else {
-    tpls.unshift({id:Date.now().toString(),name,items:[...tplItems],by:SESSION?.name||'You',at:new Date().toISOString()});
-  }
-  setTpls(tpls);tplItems=[];
-  document.getElementById('tplName').value='';
-  renderTplItems();renderSavedCards();renderListFilters();
-  toast('List "'+name+'" saved');
+  const btn=document.getElementById('saveListBtn');
+  btn.disabled=true;
+  try {
+    if(editTplId){
+      await apiFetch('/lists/'+editTplId,{method:'PUT',body:JSON.stringify({name,items:tplItems})});
+      editTplId=null;
+      document.getElementById('listBuilderLabel').textContent='New list';
+      btn.textContent='Save List';
+    } else {
+      await apiFetch('/lists',{method:'POST',body:JSON.stringify({name,items:tplItems})});
+    }
+    tplItems=[];
+    document.getElementById('tplName').value='';
+    renderTplItems();
+    await loadLists();
+    toast('List "'+name+'" saved');
+  } catch(e){ toast(e.message); }
+  finally { btn.disabled=false; }
 }
+
 function editTpl(id){
-  const t=getTpls().find(x=>x.id===id);if(!t)return;
+  const t=serverLists.find(x=>x.id===id);if(!t)return;
   editTplId=id;document.getElementById('tplName').value=t.name;
   document.getElementById('listBuilderLabel').textContent='Editing: '+t.name;
   document.getElementById('saveListBtn').textContent='Update List';
@@ -1154,14 +1171,15 @@ function editTpl(id){
   document.getElementById('tplName').focus();
   toast('Edit then click Update List');
 }
+
 async function loadTpl(id){
-  const t=getTpls().find(x=>x.id===id);if(!t){toast('Not found');return;}
+  const t=serverLists.find(x=>x.id===id);if(!t){toast('Not found');return;}
   if(!SESSION?.familyId){toast('Join a family first');openFamilyScreen();return;}
   document.querySelectorAll('.sc-b-add').forEach(b=>{b.disabled=true;b.textContent='Adding…';});
   let n=0;
   for(const it of t.items){
     try{
-      const item=await apiFetch('/items',{method:'POST',body:JSON.stringify({name:it.name,category:it.category||'other',urgency:it.urgency||'normal',note:it.note||''})});
+      const item=await apiFetch('/items',{method:'POST',body:JSON.stringify({name:it.name,category:it.category||'other',urgency:it.urgency||'normal',note:it.note||'',list_id:t.id})});
       items.unshift(item);n++;
     }catch{}
   }
@@ -1170,17 +1188,24 @@ async function loadTpl(id){
   toast('Added '+n+' item'+(n!==1?'s':'')+' from "'+t.name+'"');
   if(isMob())mobileShow('list');
 }
+
 async function delTpl(id,name){
-  const ok=await confirm2('Delete list?',`Remove "${name}"?`);if(!ok)return;
-  setTpls(getTpls().filter(t=>t.id!==id));
-  if(activeListF===id)activeListF=null;
-  renderSavedCards();renderListFilters();render();toast('List deleted');
+  const ok=await confirm2('Delete list?',`Remove "${name}"?`,'🗑','Delete');if(!ok)return;
+  try {
+    await apiFetch('/lists/'+id,{method:'DELETE'});
+    if(activeListF===id)activeListF=null;
+    await loadLists();
+    render();
+    toast('List deleted');
+  } catch(e){ toast(e.message); }
 }
+
 function togglePreview(id){const p=document.getElementById('pr-'+id);const open=p.style.display==='flex';p.style.display=open?'none':'flex';p.style.flexDirection='column';}
+
 function renderSavedCards(){
-  const el=document.getElementById('savedCards');const tpls=getTpls();
-  if(!tpls.length){el.innerHTML='<div class="no-saved">No saved lists yet</div>';return;}
-  el.innerHTML=tpls.map(t=>`
+  const el=document.getElementById('savedCards');
+  if(!serverLists.length){el.innerHTML='<div class="no-saved">No saved lists yet</div>';return;}
+  el.innerHTML=serverLists.map(t=>`
     <div class="sc-card">
       <div class="sc-head">
         <span class="sc-name">${esc(t.name)}</span>
@@ -1218,6 +1243,7 @@ function startSSE() {
   if (sse) sse.close();
   sse = new EventSource(`${SRV}/events?userId=${SESSION.userId}`);
   sse.addEventListener('refresh', () => { load(); });
+  sse.addEventListener('listsRefresh', () => { loadLists(); });
   sse.addEventListener('kicked', (e) => {
     const data = JSON.parse(e.data);
     document.getElementById('kickedMsg').textContent = data.reason || 'You are no longer in this family.';

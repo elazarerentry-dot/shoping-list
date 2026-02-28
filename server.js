@@ -33,6 +33,15 @@ db.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS lists (
+    id TEXT PRIMARY KEY,
+    family_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    items_json TEXT NOT NULL DEFAULT '[]',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS items (
     id TEXT PRIMARY KEY,
     family_id TEXT NOT NULL,
@@ -43,6 +52,7 @@ db.exec(`
     urgency TEXT NOT NULL DEFAULT 'normal',
     note TEXT NOT NULL DEFAULT '',
     done INTEGER NOT NULL DEFAULT 0,
+    list_id TEXT,
     created_at TEXT NOT NULL
   );
 `);
@@ -71,6 +81,15 @@ try {
 } catch(e) {
   console.error('Migration error:', e.message);
 }
+
+// ─── MIGRATION: add list_id to items if missing ────────────────────────────
+try {
+  const itemCols = db.prepare('PRAGMA table_info(items)').all();
+  if (!itemCols.some(c => c.name === 'list_id')) {
+    db.exec('ALTER TABLE items ADD COLUMN list_id TEXT');
+    console.log('Migration: added list_id to items');
+  }
+} catch(e) { console.error('Migration error:', e.message); }
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 function makeCode() {
@@ -278,6 +297,48 @@ app.get('/api/family/members', (req, res) => {
   res.json({ members, ownerId: family.owner_id });
 });
 
+// ─── LIST ROUTES ───────────────────────────────────────────────────────────
+
+app.get('/api/lists', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  if (!user.family_id) return res.json([]);
+  const lists = db.prepare('SELECT * FROM lists WHERE family_id = ? ORDER BY created_at DESC').all(user.family_id);
+  res.json(lists.map(l => ({ ...l, items: JSON.parse(l.items_json) })));
+});
+
+app.post('/api/lists', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  if (!user.family_id) return res.status(400).json({ error: 'Join a family first' });
+  const { name, items } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  db.prepare('INSERT INTO lists (id, family_id, name, items_json, created_by, created_at) VALUES (?,?,?,?,?,?)')
+    .run(id, user.family_id, name, JSON.stringify(items || []), user.id, now);
+  sseBroadcast(user.family_id, 'listsRefresh', {}, user.id);
+  res.status(201).json({ id, name, items: items || [], created_by: user.id, created_at: now });
+});
+
+app.put('/api/lists/:id', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  const list = db.prepare('SELECT * FROM lists WHERE id = ?').get(req.params.id);
+  if (!list || list.family_id !== user.family_id) return res.status(404).json({ error: 'Not found' });
+  const { name, items } = req.body;
+  db.prepare('UPDATE lists SET name=?, items_json=? WHERE id=?')
+    .run(name ?? list.name, JSON.stringify(items ?? JSON.parse(list.items_json)), list.id);
+  sseBroadcast(user.family_id, 'listsRefresh', {}, user.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/lists/:id', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  const list = db.prepare('SELECT * FROM lists WHERE id = ?').get(req.params.id);
+  if (!list || list.family_id !== user.family_id) return res.status(404).json({ error: 'Not found' });
+  db.prepare('DELETE FROM lists WHERE id = ?').run(list.id);
+  sseBroadcast(user.family_id, 'listsRefresh', {}, user.id);
+  res.json({ ok: true });
+});
+
 // ─── ITEMS ROUTES ──────────────────────────────────────────────────────────
 
 app.get('/api/items', (req, res) => {
@@ -291,15 +352,15 @@ app.post('/api/items', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   if (!user.family_id) return res.status(400).json({ error: 'Join a family first' });
 
-  const { name, category, urgency, note } = req.body;
+  const { name, category, urgency, note, list_id } = req.body;
   if (!name || !category) return res.status(400).json({ error: 'name and category required' });
 
   const id = uuidv4();
   const now = new Date().toISOString();
-  db.prepare('INSERT INTO items (id, family_id, name, who, user_id, category, urgency, note, done, created_at) VALUES (?,?,?,?,?,?,?,?,0,?)')
-    .run(id, user.family_id, name, user.name, user.id, category, urgency || 'normal', note || '', now);
+  db.prepare('INSERT INTO items (id, family_id, name, who, user_id, category, urgency, note, done, list_id, created_at) VALUES (?,?,?,?,?,?,?,?,0,?,?)')
+    .run(id, user.family_id, name, user.name, user.id, category, urgency || 'normal', note || '', list_id || null, now);
 
-  res.status(201).json({ id, family_id: user.family_id, name, who: user.name, user_id: user.id, category, urgency: urgency || 'normal', note: note || '', done: false, createdAt: now });
+  res.status(201).json({ id, family_id: user.family_id, name, who: user.name, user_id: user.id, category, urgency: urgency || 'normal', note: note || '', done: false, list_id: list_id || null, createdAt: now });
   sseBroadcast(user.family_id, 'refresh', { action: 'add' }, user.id);
 });
 
