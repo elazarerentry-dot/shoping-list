@@ -425,7 +425,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   </div>
   <div id="amNoFam" style="font-size:12px;color:var(--soft);margin-bottom:.75rem;display:none;">Not in a family yet.</div>
   <div class="am-row">
-    <button class="am-btn" id="amFamBtn" onclick="openFamilyScreen()">Family Settings</button>
+    <button class="am-btn" id="amFamBtn" onclick="leaveFamilyThenOpen()">Family Settings</button>
     <button class="am-btn danger" onclick="doLogout()">Log Out</button>
   </div>
 </div>
@@ -704,6 +704,26 @@ function famTab(t){
 function openFamilyScreen(){
   closeAccountMenu();
   document.getElementById('familyScreen').classList.remove('hidden');
+}
+
+async function leaveFamilyThenOpen(){
+  if (SESSION?.familyId) {
+    const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋');
+    if (!ok) return;
+    try {
+      await apiFetch('/family/leave', { method: 'POST' });
+    } catch(e) { /* ignore if already not in family */ }
+    SESSION.familyId = null;
+    FAMILY = null;
+    saveSession(SESSION);
+    updateAccountMenu();
+    updateNoFamilyBanner();
+    items = [];
+    render();
+    updateHeader();
+    toast('Left family');
+  }
+  openFamilyScreen();
 }
 
 function closeFamilyScreen(){
