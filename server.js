@@ -393,6 +393,17 @@ app.delete('/api/items/done/all', (req, res) => {
   sseBroadcast(user.family_id, 'refresh', { action: 'clearDone' }, user.id);
 });
 
+// Admin: delete ALL items for the family (owner only)
+app.delete('/api/items/all', (req, res) => {
+  const user = requireUser(req, res); if (!user) return;
+  if (!user.family_id) return res.json({ ok: true });
+  const family = db.prepare('SELECT * FROM families WHERE id = ?').get(user.family_id);
+  if (!family || family.owner_id !== user.id) return res.status(403).json({ error: 'Only the family owner can delete all items' });
+  db.prepare('DELETE FROM items WHERE family_id = ?').run(user.family_id);
+  res.json({ ok: true });
+  sseBroadcast(user.family_id, 'refresh', { action: 'deleteAll' }, user.id);
+});
+
 app.delete('/api/items/:id', (req, res) => {
   const user = requireUser(req, res); if (!user) return;
   const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);

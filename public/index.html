@@ -438,6 +438,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
     <div id="amMembersBlock" style="display:none;margin-top:.75rem;">
       <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">👑 Members</div>
       <div id="amMembersList"></div>
+      <button class="am-btn danger" style="width:100%;margin-top:.5rem;" onclick="adminDeleteAllItems()">🗑 Delete All Items</button>
     </div>
   </div>
   <div id="amNoFam" style="font-size:12px;color:var(--soft);margin-bottom:.75rem;display:none;">Not in a family yet.</div>
@@ -575,7 +576,10 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
       </div>
       <div class="toolbar">
         <span class="result-info" id="resultInfo"></span>
-        <button class="clear-btn" onclick="confirmClearDone()">Clear done</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="clear-btn" id="refreshBtn" onclick="manualRefresh()" title="Refresh list">↻</button>
+          <button class="clear-btn" onclick="confirmClearDone()">Clear done</button>
+        </div>
       </div>
       <div class="items-list" id="itemsList"></div>
     </div>
@@ -967,6 +971,14 @@ async function load(){
   try{items=await apiFetch('/items');render();updateHeader();renderListFilters();}
   catch(e){console.warn(e);}
 }
+
+async function manualRefresh(){
+  const btn = document.getElementById('refreshBtn');
+  if(btn){ btn.style.transform='rotate(360deg)'; btn.style.transition='transform 0.4s ease'; }
+  await load();
+  setTimeout(()=>{ if(btn){ btn.style.transform=''; btn.style.transition=''; } }, 400);
+  toast('List refreshed');
+}
 function updateHeader(){
   const o=items.filter(i=>!i.done).length;
   document.getElementById('hCount').textContent=o;
@@ -993,16 +1005,11 @@ async function addItem(){
   finally{btn.disabled=false;btn.textContent='Add to List';}
 }
 
-// Pending toggles: id -> desired done state, flushed after 600ms of inactivity
-let _pendingToggles = {};
-let _toggleFlushTimer = null;
-
-function toggleDone(id, done) {
-  // Update in-memory state immediately
+async function toggleDone(id, done) {
   const i = items.findIndex(x => x.id === id);
   if (i !== -1) items[i].done = done;
 
-  // Update just this card in-place (no full re-render = no jarring refresh)
+  // Update card in-place — no re-render, no re-sort, items stay where they are
   const card = document.getElementById('c-' + id);
   if (card) {
     card.classList.toggle('done', done);
@@ -1011,23 +1018,20 @@ function toggleDone(id, done) {
   }
   updateHeader();
 
-  // Queue API sync - batches rapid checks together
-  _pendingToggles[id] = done;
-  clearTimeout(_toggleFlushTimer);
-  _toggleFlushTimer = setTimeout(async () => {
-    const batch = { ..._pendingToggles };
-    _pendingToggles = {};
-    const doneCount = Object.values(batch).filter(Boolean).length;
-    try {
-      await Promise.all(Object.entries(batch).map(([itemId, doneVal]) =>
-        apiFetch('/items/' + itemId, { method: 'PATCH', body: JSON.stringify({ done: doneVal }) })
-      ));
-      if (doneCount > 0) toast(doneCount > 1 ? 'Marked ' + doneCount + ' done \u2713' : 'Marked done \u2713');
-    } catch(e) {
-      console.warn(e);
-      load(); // reload to restore true server state on error
+  // Send immediately — no debounce so uncheck works right away
+  try {
+    await apiFetch('/items/' + id, { method: 'PATCH', body: JSON.stringify({ done }) });
+  } catch(e) {
+    // Revert on error
+    if (i !== -1) items[i].done = !done;
+    if (card) {
+      card.classList.toggle('done', !done);
+      const chk = card.querySelector('.chk');
+      if (chk) { chk.classList.toggle('on', !done); chk.textContent = !done ? '\u2713' : ''; }
     }
-  }, 600);
+    updateHeader();
+    toast('Could not update — check your connection');
+  }
 }
 
 async function confDelItem(id){
@@ -1043,6 +1047,20 @@ async function confirmClearDone(){
   const ok=await confirm2('Clear done items?',`Remove all ${n} completed item${n!==1?'s':''}?`);if(!ok)return;
   await apiFetch('/items/done/all',{method:'DELETE'});
   items=items.filter(i=>!i.done);render();updateHeader();toast('Cleared '+n+' item'+(n!==1?'s':''));
+}
+
+async function adminDeleteAllItems(){
+  const n=items.length;
+  closeAccountMenu();
+  if(!n){toast('No items to delete');return;}
+  const ok=await confirm2('Delete ALL items?',`Permanently remove all ${n} item${n!==1?'s':''} for the whole family. This cannot be undone.`,'🗑','Delete All');
+  if(!ok)return;
+  try{
+    // Try bulk endpoint first, fall back to one-by-one
+    try{ await apiFetch('/items/all',{method:'DELETE'}); }
+    catch{ await Promise.all(items.map(i=>apiFetch('/items/'+i.id,{method:'DELETE'}))); }
+    items=[];render();updateHeader();toast('All '+n+' item'+(n!==1?'s':'')+' deleted');
+  }catch(e){toast('Error: '+e.message);}
 }
 
 /* ═══ RENDER ═══ */
