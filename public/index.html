@@ -690,6 +690,7 @@ function onLoggedIn(){
     document.getElementById('hUser').textContent = SESSION.name;
     updateNoFamilyBanner();
     load();
+    startSSE();
   }
 }
 
@@ -716,6 +717,7 @@ async function leaveFamilyThenOpen(){
     SESSION.familyId = null;
     FAMILY = null;
     saveSession(SESSION);
+    if (sse) { sse.close(); sse = null; }
     updateAccountMenu();
     updateNoFamilyBanner();
     items = [];
@@ -788,6 +790,7 @@ function onFamilyJoined(){
   updateAccountMenu();
   updateNoFamilyBanner();
   load();
+  startSSE();
 }
 
 function updateNoFamilyBanner(){
@@ -1130,7 +1133,21 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
 
 /* ═══ INIT ═══ */
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')addItem();});
-setInterval(()=>{ if(SESSION?.familyId) load(); },30000);
+/* ═══ REAL-TIME LISTENER ═══ */
+let sse = null;
+function startSSE() {
+  if (!SESSION?.userId || !SESSION?.familyId) return;
+  if (sse) sse.close();
+  sse = new EventSource(`${SRV}/events?userId=${SESSION.userId}`);
+  sse.addEventListener('refresh', () => { load(); });
+  sse.onerror = () => {
+    // SSE dropped — retry after 5s
+    sse.close(); sse = null;
+    setTimeout(() => { if (SESSION?.familyId) startSSE(); }, 5000);
+  };
+}
+// Fallback polling every 30s in case SSE is not working
+setInterval(() => { if (SESSION?.familyId && (!sse || sse.readyState === 2)) load(); }, 30000);
 
 (async function init(){
   SESSION = getSession();
