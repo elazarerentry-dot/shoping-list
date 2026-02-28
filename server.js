@@ -26,6 +26,7 @@ app.patch('/api/items/:id', (req, res) => {
   res.json(items[idx]);
 });
 
+// IMPORTANT: /done/all must be defined BEFORE /:id or Express will treat "done" as an id
 app.delete('/api/items/done/all', (req, res) => {
   items = items.filter(i => !i.done);
   res.json({ ok: true });
@@ -36,5 +37,5 @@ app.delete('/api/items/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Family List on http://localhost:${PORT}`));

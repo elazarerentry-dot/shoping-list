@@ -578,9 +578,9 @@ header{
 
 <script>
 /* ═══ STORAGE ═══ */
-const SRV = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3001/api' : null;
+const SRV = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3001/api' : (location.origin + '/api');
 let srvOk = false;
-async function chkSrv(){if(!SRV)return;try{const r=await fetch(SRV+'/items',{signal:AbortSignal.timeout(2000)});srvOk=r.ok;}catch{}}
+async function chkSrv(){try{const r=await fetch(SRV+'/items',{signal:AbortSignal.timeout(3000)});srvOk=r.ok;}catch{}}
 const LS='fl_v2';
 function lsGet(){try{return JSON.parse(localStorage.getItem(LS)||'[]');}catch{return[];}}
 function lsSave(a){localStorage.setItem(LS,JSON.stringify(a));}
