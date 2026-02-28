@@ -47,6 +47,31 @@ db.exec(`
   );
 `);
 
+// ─── MIGRATION: remove password_hash from families if it exists ─────────────
+try {
+  const cols = db.prepare('PRAGMA table_info(families)').all();
+  const hasPasswordHash = cols.some(c => c.name === 'password_hash');
+  if (hasPasswordHash) {
+    console.log('Migrating families table — removing password_hash...');
+    db.exec(`
+      CREATE TABLE families_new (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        code TEXT UNIQUE NOT NULL,
+        owner_id TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      INSERT INTO families_new (id, name, code, owner_id, created_at)
+        SELECT id, name, code, owner_id, created_at FROM families;
+      DROP TABLE families;
+      ALTER TABLE families_new RENAME TO families;
+    `);
+    console.log('Migration complete.');
+  }
+} catch(e) {
+  console.error('Migration error:', e.message);
+}
+
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 function makeCode() {
   // Short memorable family invite code e.g. "BLUE-7492"
