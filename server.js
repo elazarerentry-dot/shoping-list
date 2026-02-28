@@ -96,11 +96,11 @@ function sseAdd(familyId, res) {
 function sseRemove(familyId, res) {
   sseClients.get(familyId)?.delete(res);
 }
-function sseBroadcast(familyId, event, data) {
+function sseBroadcast(familyId, event, data, excludeUserId) {
   const clients = sseClients.get(familyId);
   if (!clients || clients.size === 0) return;
   const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-  clients.forEach(res => { try { res.write(msg); } catch {} });
+  clients.forEach((res, ) => { try { if (res._userId !== excludeUserId) res.write(msg); } catch {} });
 }
 
 app.get('/api/events', (req, res) => {
@@ -114,6 +114,7 @@ app.get('/api/events', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
+  res._userId = userId;
 
   const heartbeat = setInterval(() => {
     try { res.write(': heartbeat\n\n'); } catch { clearInterval(heartbeat); }
@@ -255,7 +256,7 @@ app.post('/api/items', (req, res) => {
     .run(id, user.family_id, name, user.name, user.id, category, urgency || 'normal', note || '', now);
 
   res.status(201).json({ id, family_id: user.family_id, name, who: user.name, user_id: user.id, category, urgency: urgency || 'normal', note: note || '', done: false, createdAt: now });
-  sseBroadcast(user.family_id, 'refresh', { action: 'add' });
+  sseBroadcast(user.family_id, 'refresh', { action: 'add' }, user.id);
 });
 
 app.patch('/api/items/:id', (req, res) => {
@@ -276,7 +277,7 @@ app.patch('/api/items/:id', (req, res) => {
     .run(updated.name, updated.note, updated.category, updated.urgency, updated.done, item.id);
 
   res.json({ ...item, ...updated, done: updated.done === 1, createdAt: item.created_at });
-  sseBroadcast(user.family_id, 'refresh', { action: 'update' });
+  sseBroadcast(user.family_id, 'refresh', { action: 'update' }, user.id);
 });
 
 app.delete('/api/items/done/all', (req, res) => {
@@ -284,7 +285,7 @@ app.delete('/api/items/done/all', (req, res) => {
   if (!user.family_id) return res.json({ ok: true });
   db.prepare('DELETE FROM items WHERE family_id = ? AND done = 1').run(user.family_id);
   res.json({ ok: true });
-  sseBroadcast(user.family_id, 'refresh', { action: 'clearDone' });
+  sseBroadcast(user.family_id, 'refresh', { action: 'clearDone' }, user.id);
 });
 
 app.delete('/api/items/:id', (req, res) => {
@@ -294,7 +295,7 @@ app.delete('/api/items/:id', (req, res) => {
   if (item.family_id !== user.family_id) return res.status(403).json({ error: 'Forbidden' });
   db.prepare('DELETE FROM items WHERE id = ?').run(item.id);
   res.json({ ok: true });
-  sseBroadcast(user.family_id, 'refresh', { action: 'delete' });
+  sseBroadcast(user.family_id, 'refresh', { action: 'delete' }, user.id);
 });
 
 const PORT = process.env.PORT || 8080;
