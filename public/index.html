@@ -993,12 +993,41 @@ async function addItem(){
   finally{btn.disabled=false;btn.textContent='Add to List';}
 }
 
-async function toggleDone(id,done){
-  try{
-    await apiFetch('/items/'+id,{method:'PATCH',body:JSON.stringify({done})});
-    const i=items.findIndex(x=>x.id===id);if(i!==-1)items[i].done=done;
-    render();updateHeader();if(done)toast('Marked done ✓');
-  }catch(e){console.warn(e);}
+// Pending toggles: id -> desired done state, flushed after 600ms of inactivity
+let _pendingToggles = {};
+let _toggleFlushTimer = null;
+
+function toggleDone(id, done) {
+  // Update in-memory state immediately
+  const i = items.findIndex(x => x.id === id);
+  if (i !== -1) items[i].done = done;
+
+  // Update just this card in-place (no full re-render = no jarring refresh)
+  const card = document.getElementById('c-' + id);
+  if (card) {
+    card.classList.toggle('done', done);
+    const chk = card.querySelector('.chk');
+    if (chk) { chk.classList.toggle('on', done); chk.textContent = done ? '\u2713' : ''; }
+  }
+  updateHeader();
+
+  // Queue API sync - batches rapid checks together
+  _pendingToggles[id] = done;
+  clearTimeout(_toggleFlushTimer);
+  _toggleFlushTimer = setTimeout(async () => {
+    const batch = { ..._pendingToggles };
+    _pendingToggles = {};
+    const doneCount = Object.values(batch).filter(Boolean).length;
+    try {
+      await Promise.all(Object.entries(batch).map(([itemId, doneVal]) =>
+        apiFetch('/items/' + itemId, { method: 'PATCH', body: JSON.stringify({ done: doneVal }) })
+      ));
+      if (doneCount > 0) toast(doneCount > 1 ? 'Marked ' + doneCount + ' done \u2713' : 'Marked done \u2713');
+    } catch(e) {
+      console.warn(e);
+      load(); // reload to restore true server state on error
+    }
+  }, 600);
 }
 
 async function confDelItem(id){
@@ -1126,11 +1155,11 @@ function renderTplItems(){
     <div class="ti-row">
       <div class="ti-top">
         <input class="ti-n" value="${esc(it.name)}" maxlength="80" onchange="syncTpl()" placeholder="Item…">
-        <select class="ti-c" onchange="syncTpl()">${CATS.map(c=>`<option value="${c}"${c===it.category?' selected':''}}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
-        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}}>${UL[u]}</option>`).join('')}</select>
+        <select class="ti-c" onchange="syncTpl()">${CATS.map(c=>`<option value="${c}"${c===it.category?' selected':''}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
+        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}>${UL[u]}</option>`).join('')}</select>
         <button class="ti-del" onclick="remTplItem(${i})">✕</button>
       </div>
-      <input class="ti-note-inp" value="${esc(it.note||'')}'  placeholder="Note…" onchange="syncTpl()">
+      <input class="ti-note-inp" value="${esc(it.note||'')}" placeholder="Note…" onchange="syncTpl()">
     </div>`).join('');
 }
 
