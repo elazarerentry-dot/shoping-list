@@ -447,19 +447,21 @@ async function apiClrDone(){lsSave(lsGet().filter(i=>!i.done));if(srvOk&&SRV){tr
 /* ═══ CONFIRM (FIXED) ═══ */
 let _cr=null;
 function confirm2(title,body,icon='🗑'){
-  closeConfirm(); // Close existing if open
+  closeConfirm(); // Clear any existing listener
   return new Promise(res=>{
     _cr=res;
     document.getElementById('mIcon').textContent=icon;
     document.getElementById('mTitle').textContent=title;
     document.getElementById('mBody').textContent=body;
     
-    // Set a one-time click handler
-    document.getElementById('mConfirmBtn').onclick=()=>{
+    // Assign fresh click listener to the button
+    const btn = document.getElementById('mConfirmBtn');
+    btn.onclick = () => {
       if(_cr) _cr(true);
-      _cr=null;
+      _cr = null;
       closeConfirm();
     };
+    
     document.getElementById('confirmModal').classList.remove('hidden');
   });
 }
@@ -534,7 +536,7 @@ async function addItem(){
 
 async function toggleDone(id,done){await apiPatch(id,{done});const i=items.findIndex(x=>x.id===id);if(i!==-1)items[i].done=done;render();updateHeader();}
 async function confDelItem(id,name){const ok=await confirm2('Delete?',`Remove "${name}"?`);if(ok){await apiDel(id);items=items.filter(i=>i.id!==id);render();updateHeader();toast('Deleted');}}
-async function confirmClearDone(){const ok=await confirm2('Clear?','Remove all completed?');if(ok){await apiClrDone();items=items.filter(i=>!i.done);render();updateHeader();}}
+async function confirmClearDone(){const ok=await confirm2('Clear?','Remove all completed?');if(ok){await apiClrDone();items=items.filter(i!=>!i.done);render();updateHeader();}}
 
 /* ═══ LISTS/TEMPLATES ═══ */
 let tplItems=[];
