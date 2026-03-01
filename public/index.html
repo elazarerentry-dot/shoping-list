@@ -341,7 +341,26 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 
 /* ═══ MOBILE ═══ */
 .mobile-nav{display:none;}
-@media(max-width:700px){
+
+/* JS-driven mobile class — fallback for devices where media query doesn't fire */
+body.is-mobile .app-shell{position:static !important;display:block !important;}
+body.is-mobile{padding-top:var(--header-h);padding-bottom:var(--nav-h);}
+body.is-mobile .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);overflow:visible;display:none;background:var(--surface);}
+body.is-mobile .main{padding:.875rem 1rem;overflow:visible;}
+body.is-mobile.show-add .sidebar{display:block;}
+body.is-mobile.show-add .main{display:none;}
+body.is-mobile.show-lists .sidebar{display:block;}
+body.is-mobile.show-lists .main{display:none;}
+body.is-mobile .mobile-nav{display:flex !important;position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:200;}
+body.is-mobile .mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;color:var(--soft);border-top:2px solid transparent;padding:6px 0;-webkit-tap-highlight-color:transparent;}
+body.is-mobile .mn-btn.active{color:var(--blue);border-top-color:var(--blue);}
+body.is-mobile .h-sub{display:none;}
+body.is-mobile header{padding:0 1rem;}
+body.is-mobile .toast{bottom:calc(var(--nav-h) + 10px);right:.875rem;left:.875rem;text-align:center;}
+body.is-mobile #accountMenu{left:1rem;right:1rem;top:calc(var(--header-h) + 6px);}
+body.is-mobile .chk{width:36px;height:36px;min-width:36px;min-height:36px;}
+
+@media(max-width:900px){
   .app-shell{position:static;display:block;}
   body{padding-top:var(--header-h);padding-bottom:var(--nav-h);}
   .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);overflow:visible;display:none;background:var(--surface);}
@@ -1307,7 +1326,15 @@ function sbTab(tab){
 }
 
 /* ═══ MOBILE NAV ═══ */
-function isMob(){return window.matchMedia('(max-width:700px)').matches;}
+function isMob(){
+  return window.matchMedia('(max-width:900px)').matches ||
+         ('ontouchstart' in window && window.innerWidth < 1200);
+}
+function applyMobileClass(){
+  document.body.classList.toggle('is-mobile', isMob());
+}
+applyMobileClass();
+window.addEventListener('resize', applyMobileClass);
 function mobileShow(view){
   if(!isMob())return;
   document.body.classList.remove('show-add','show-lists');
