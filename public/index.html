@@ -304,6 +304,41 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 @keyframes toastIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .toast{animation:toastIn .15s ease;}
 
+/* ═══ LANG TOGGLE ═══ */
+.lang-toggle{display:flex;gap:4px;margin-bottom:1.25rem;}
+.lang-btn{flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:12px;font-weight:600;color:var(--soft);background:var(--surface2);cursor:pointer;transition:all .12s;}
+.lang-btn:hover{border-color:var(--blue);color:var(--blue);}
+.lang-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+.h-lang{display:flex;gap:4px;align-items:center;}
+.h-lang-btn{padding:3px 8px;border:1px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:11px;font-weight:600;color:var(--soft);background:transparent;cursor:pointer;transition:all .12s;}
+.h-lang-btn:hover{border-color:var(--blue);color:var(--blue);}
+.h-lang-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+
+/* ═══ RTL support ═══ */
+[dir="rtl"] .auth-box,[dir="rtl"] .fam-box{text-align:right;}
+[dir="rtl"] .modal-btns{justify-content:flex-start;}
+[dir="rtl"] .ic-meta{flex-direction:row-reverse;}
+[dir="rtl"] .ic-top{flex-direction:row-reverse;}
+[dir="rtl"] .ic-acts{flex-direction:row-reverse;}
+[dir="rtl"] .ic-edit-acts{justify-content:flex-start;}
+[dir="rtl"] .am-fam-code{text-align:right;}
+[dir="rtl"] .toolbar{flex-direction:row-reverse;}
+[dir="rtl"] .h-right{flex-direction:row-reverse;}
+[dir="rtl"] .toast{right:auto;left:1.25rem;}
+[dir="rtl"] .item-card{border-left:none;border-right:3px solid var(--border);}
+[dir="rtl"] .item-card.ul-urgent{border-right-color:var(--urgent);}
+[dir="rtl"] .item-card.ul-normal{border-right-color:var(--normal);}
+[dir="rtl"] .item-card.ul-sometime{border-right-color:var(--sometime);}
+[dir="rtl"] header{flex-direction:row-reverse;}
+[dir="rtl"] .sb-panel{text-align:right;}
+[dir="rtl"] .fam-field .hint{text-align:right;}
+[dir="rtl"] .auth-field label,[dir="rtl"] .fam-field label{text-align:right;}
+[dir="rtl"] .field label{text-align:right;}
+@media(max-width:700px){
+  [dir="rtl"] .toast{right:auto;left:.875rem;bottom:calc(var(--nav-h) + 10px);}
+  [dir="rtl"] #accountMenu{left:1rem;right:1rem;}
+}
+
 /* ═══ MOBILE ═══ */
 .mobile-nav{display:none;}
 @media(max-width:700px){
@@ -339,9 +374,13 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 <!-- ═══ AUTH SCREEN ═══ -->
 <div id="authScreen" class="hidden">
   <div class="auth-box">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="authLangEN" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="authLangHE" onclick="setLang('he')">עברית</button>
+    </div>
     <div class="auth-logo">🏠</div>
-    <h2>Family List</h2>
-    <p>Your shared family shopping &amp; to-do list. Sign up or log in to get started.</p>
+    <h2 id="authTitle">Family List</h2>
+    <p id="authSubtitle">Your shared family shopping &amp; to-do list. Sign up or log in to get started.</p>
     <div class="auth-tabs">
       <button class="auth-tab active" id="authTabLogin" onclick="authTab('login')">Log In</button>
       <button class="auth-tab" id="authTabSignup" onclick="authTab('signup')">Sign Up</button>
@@ -349,16 +388,16 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
     <!-- Login form -->
     <div id="authPanelLogin">
       <div class="auth-err" id="loginErr"></div>
-      <div class="auth-field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="auth-field"><label>Password</label><input id="loginPwd" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-field"><label id="lblLoginEmail">Email</label><input id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-field"><label id="lblLoginPwd">Password</label><input id="loginPwd" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-submit" id="loginBtn" onclick="doLogin()">Log In</button>
     </div>
     <!-- Signup form -->
     <div id="authPanelSignup" style="display:none;">
       <div class="auth-err" id="signupErr"></div>
-      <div class="auth-field"><label>Your Name</label><input id="signupName" type="text" placeholder="e.g. Sarah" maxlength="40" onkeydown="if(event.key==='Enter')doSignup()"></div>
-      <div class="auth-field"><label>Email</label><input id="signupEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doSignup()"></div>
-      <div class="auth-field"><label>Password <span style="font-weight:400;text-transform:none;letter-spacing:0;">(min 6 characters)</span></label><input id="signupPwd" type="password" placeholder="Create a password" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div class="auth-field"><label id="lblSignupName">Your Name</label><input id="signupName" type="text" placeholder="e.g. Sarah" maxlength="40" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div class="auth-field"><label id="lblSignupEmail">Email</label><input id="signupEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div class="auth-field"><label id="lblSignupPwd">Password <span style="font-weight:400;text-transform:none;letter-spacing:0;" id="lblSignupPwdHint">(min 6 characters)</span></label><input id="signupPwd" type="password" placeholder="Create a password" onkeydown="if(event.key==='Enter')doSignup()"></div>
       <button class="auth-submit" id="signupBtn" onclick="doSignup()">Create Account</button>
     </div>
   </div>
@@ -370,17 +409,17 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
     <!-- Success screen shown after creating -->
     <div id="famSuccess" style="display:none;text-align:center;">
       <div style="font-size:36px;margin-bottom:.5rem;">🎉</div>
-      <h2 style="font-size:18px;font-weight:700;margin-bottom:.5rem;">Family Created!</h2>
-      <p style="font-size:13px;color:var(--mid);margin-bottom:1.25rem;">Share this invite code with your family members so they can join:</p>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:.5rem;" id="famSuccessTitle">Family Created!</h2>
+      <p style="font-size:13px;color:var(--mid);margin-bottom:1.25rem;" id="famSuccessMsg">Share this invite code with your family members so they can join:</p>
       <div id="famSuccessCode" style="font-family:monospace;font-size:32px;font-weight:800;letter-spacing:.1em;color:var(--blue);background:var(--blue-bg);border:2px solid #bfdbfe;border-radius:var(--rl);padding:1rem;margin-bottom:1rem;"></div>
-      <p style="font-size:12px;color:var(--soft);margin-bottom:1.5rem;">They go to "Join Family" and enter this code.</p>
-      <button class="fam-submit" onclick="closeFamilyScreen()">Go to My List →</button>
+      <p style="font-size:12px;color:var(--soft);margin-bottom:1.5rem;" id="famSuccessHint">They go to "Join Family" and enter this code.</p>
+      <button class="fam-submit" id="famSuccessBtn" onclick="closeFamilyScreen()">Go to My List →</button>
     </div>
     <!-- Normal screen -->
     <div id="famMain">
       <div class="fam-logo">👨‍👩‍👧‍👦</div>
-      <h2>Join or Create a Family</h2>
-      <p>Create a new family list and share the invite code, or join an existing one.</p>
+      <h2 id="famTitle">Join or Create a Family</h2>
+      <p id="famSubtitle">Create a new family list and share the invite code, or join an existing one.</p>
       <div class="fam-tabs">
         <button class="fam-tab active" id="famTabCreate" onclick="famTab('create')">Create Family</button>
         <button class="fam-tab" id="famTabJoin" onclick="famTab('join')">Join Family</button>
@@ -389,9 +428,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
       <div class="fam-panel active" id="famPanelCreate">
         <div class="fam-err" id="createErr"></div>
         <div class="fam-field">
-          <label>Family Name</label>
+          <label id="lblFamName">Family Name</label>
           <input id="famName" type="text" placeholder="e.g. The Smiths" maxlength="40" onkeydown="if(event.key==='Enter')doCreateFamily()">
-          <div class="hint">This is the name your family members will see.</div>
+          <div class="hint" id="hintFamName">This is the name your family members will see.</div>
         </div>
         <button class="fam-submit" id="createFamBtn" onclick="doCreateFamily()">Create Family</button>
       </div>
@@ -399,14 +438,14 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
       <div class="fam-panel" id="famPanelJoin">
         <div class="fam-err" id="joinErr"></div>
         <div class="fam-field">
-          <label>Family Name</label>
+          <label id="lblJoinName">Family Name</label>
           <input id="joinName" type="text" placeholder="e.g. The Smiths" maxlength="40" onkeydown="if(event.key==='Enter')doJoinFamily()">
-          <div class="hint">The name of the family you're joining.</div>
+          <div class="hint" id="hintJoinName">The name of the family you're joining.</div>
         </div>
         <div class="fam-field">
-          <label>Invite Code</label>
+          <label id="lblJoinCode">Invite Code</label>
           <input id="joinCode" type="text" placeholder="e.g. BLUE-7492" maxlength="10" style="text-transform:uppercase;font-family:monospace;font-size:16px;font-weight:700;letter-spacing:.05em;" onkeydown="if(event.key==='Enter')doJoinFamily()">
-          <div class="hint">Ask your family member for their invite code.</div>
+          <div class="hint" id="hintJoinCode">Ask your family member for their invite code.</div>
         </div>
         <button class="fam-submit" id="joinFamBtn" onclick="doJoinFamily()">Join Family</button>
       </div>
@@ -433,7 +472,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   <div class="am-email" id="amEmail">—</div>
   <div id="amFamBlock" class="am-fam" style="display:none;">
     <div class="am-fam-name" id="amFamName">—</div>
-    <div class="am-fam-code">Invite code: <span class="am-code-val" id="amFamCode">—</span></div>
+    <div class="am-fam-code"><span id="amInviteLabel">Invite code:</span> <span class="am-code-val" id="amFamCode">—</span></div>
     <!-- Admin panel: members list (owner only) -->
     <div id="amMembersBlock" style="display:none;margin-top:.75rem;">
       <div style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">👑 Members</div>
@@ -444,7 +483,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   <div id="amNoFam" style="font-size:12px;color:var(--soft);margin-bottom:.75rem;display:none;">Not in a family yet.</div>
   <div class="am-row">
     <button class="am-btn" id="amFamBtn" onclick="leaveFamilyThenOpen()">Family Settings</button>
-    <button class="am-btn danger" onclick="doLogout()">Log Out</button>
+    <button class="am-btn danger" id="amLogoutBtn" onclick="doLogout()">Log Out</button>
   </div>
 </div>
 
@@ -454,7 +493,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
     <div class="k-icon">👋</div>
     <h3 id="kickedTitle">You've been removed</h3>
     <p id="kickedMsg">You are no longer in this family.</p>
-    <button class="fam-submit" onclick="handleKicked()">OK</button>
+    <button class="fam-submit" id="kickedOkBtn" onclick="handleKicked()">OK</button>
   </div>
 </div>
 
@@ -462,9 +501,13 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 <header>
   <div>
     <div class="h-brand">🏠 Family List</div>
-    <div class="h-sub" id="hSub">Loading…</div>
+    <div class="h-sub" id="hSub">…</div>
   </div>
   <div class="h-right">
+    <div class="h-lang">
+      <button class="h-lang-btn" id="hLangEN" onclick="setLang('en')">EN</button>
+      <button class="h-lang-btn" id="hLangHE" onclick="setLang('he')">עב</button>
+    </div>
     <span class="h-badge" id="hCount">0</span>
     <button class="h-user" onclick="toggleAccountMenu()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -481,40 +524,40 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <div class="sb-tabs">
-      <button class="sb-tab active" id="sbTabAdd"   onclick="sbTab('add')">Add Item</button>
-      <button class="sb-tab"        id="sbTabLists" onclick="sbTab('lists')">My Lists</button>
+      <button class="sb-tab active" id="sbTabAdd"   onclick="sbTab('add')" data-i18n="addItem">Add Item</button>
+      <button class="sb-tab"        id="sbTabLists" onclick="sbTab('lists')" data-i18n="myLists">My Lists</button>
     </div>
 
     <!-- ADD ITEM panel -->
     <div class="sb-panel active" id="sbPanelAdd">
-      <div class="field"><label>Added by</label><input id="fWho" readonly></div>
+      <div class="field"><label id="lblAddedBy">Added by</label><input id="fWho" readonly></div>
       <div class="field">
-        <label>Item name</label>
+        <label id="lblItemName">Item name</label>
         <input id="fName" placeholder="e.g. Milk, Batteries, Shampoo…" maxlength="80">
       </div>
       <div class="field">
-        <label>Category</label>
+        <label id="lblCategory">Category</label>
         <div class="cat-grid" id="catGrid">
-          <button class="cat-btn" data-cat="food"    onclick="pickCat(this)"><span>🛒</span>Food</button>
-          <button class="cat-btn" data-cat="toys"    onclick="pickCat(this)"><span>🧸</span>Toys</button>
-          <button class="cat-btn" data-cat="clothes" onclick="pickCat(this)"><span>👕</span>Clothes</button>
-          <button class="cat-btn" data-cat="school"  onclick="pickCat(this)"><span>🎒</span>School</button>
-          <button class="cat-btn" data-cat="house"   onclick="pickCat(this)"><span>🏡</span>House</button>
-          <button class="cat-btn" data-cat="health"  onclick="pickCat(this)"><span>💊</span>Health</button>
-          <button class="cat-btn" data-cat="fun"     onclick="pickCat(this)"><span>🎉</span>Fun</button>
-          <button class="cat-btn" data-cat="other"   onclick="pickCat(this)"><span>📦</span>Other</button>
+          <button class="cat-btn" data-cat="food"    onclick="pickCat(this)"><span>🛒</span><span data-i18n="food">Food</span></button>
+          <button class="cat-btn" data-cat="toys"    onclick="pickCat(this)"><span>🧸</span><span data-i18n="toys">Toys</span></button>
+          <button class="cat-btn" data-cat="clothes" onclick="pickCat(this)"><span>👕</span><span data-i18n="clothes">Clothes</span></button>
+          <button class="cat-btn" data-cat="school"  onclick="pickCat(this)"><span>🎒</span><span data-i18n="school">School</span></button>
+          <button class="cat-btn" data-cat="house"   onclick="pickCat(this)"><span>🏡</span><span data-i18n="house">House</span></button>
+          <button class="cat-btn" data-cat="health"  onclick="pickCat(this)"><span>💊</span><span data-i18n="health">Health</span></button>
+          <button class="cat-btn" data-cat="fun"     onclick="pickCat(this)"><span>🎉</span><span data-i18n="fun">Fun</span></button>
+          <button class="cat-btn" data-cat="other"   onclick="pickCat(this)"><span>📦</span><span data-i18n="other">Other</span></button>
         </div>
       </div>
       <div class="field">
-        <label>Priority</label>
+        <label id="lblPriority">Priority</label>
         <div class="urg-row">
-          <button class="urg-btn" data-urg="urgent"   onclick="pickUrg(this)">Urgent</button>
-          <button class="urg-btn" data-urg="normal"   onclick="pickUrg(this)">Normal</button>
-          <button class="urg-btn" data-urg="sometime" onclick="pickUrg(this)">Someday</button>
+          <button class="urg-btn" data-urg="urgent"   onclick="pickUrg(this)" data-i18n="urgent">Urgent</button>
+          <button class="urg-btn" data-urg="normal"   onclick="pickUrg(this)" data-i18n="normal">Normal</button>
+          <button class="urg-btn" data-urg="sometime" onclick="pickUrg(this)" data-i18n="sometime">Someday</button>
         </div>
       </div>
       <div class="field">
-        <label>Note <span style="text-transform:none;letter-spacing:0;font-weight:400;">(optional)</span></label>
+        <label id="lblNote">Note <span style="text-transform:none;letter-spacing:0;font-weight:400;" id="lblNoteOptional">(optional)</span></label>
         <textarea id="fNote" placeholder="Brand, size, quantity, link…"></textarea>
       </div>
       <button class="add-btn" id="submitBtn" onclick="addItem()">Add to List</button>
@@ -524,7 +567,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
     <div class="sb-panel" id="sbPanelLists">
       <div class="sec-label" id="listBuilderLabel">New list</div>
       <input class="tpl-name" id="tplName" placeholder="List name…" maxlength="40">
-      <div class="tpl-area" id="tplArea"><div class="tpl-empty">No items yet — add below</div></div>
+      <div class="tpl-area" id="tplArea"><div class="tpl-empty" id="tplEmptyMsg">No items yet — add below</div></div>
       <div class="ti-adder">
         <input id="tiName" placeholder="Item name…" maxlength="80" onkeydown="if(event.key==='Enter')addTplItem()">
         <textarea id="tiNote" placeholder="Note (optional)…" rows="1"></textarea>
@@ -540,13 +583,13 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
             <option value="urgent">Urgent</option>
             <option value="sometime">Someday</option>
           </select>
-          <button class="ti-add-btn" onclick="addTplItem()">+ Add</button>
+          <button class="ti-add-btn" id="tiAddBtn" onclick="addTplItem()">+ Add</button>
         </div>
       </div>
       <button class="save-list-btn" id="saveListBtn" onclick="saveTemplate()">Save List</button>
       <div class="divider"></div>
-      <div class="sec-label">Saved lists</div>
-      <div class="saved-cards" id="savedCards"><div class="no-saved">No saved lists yet</div></div>
+      <div class="sec-label" id="savedListsLabel">Saved lists</div>
+      <div class="saved-cards" id="savedCards"><div class="no-saved" id="noSavedMsg">No saved lists yet</div></div>
     </div>
   </div><!-- /sidebar -->
 
@@ -554,22 +597,22 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   <div class="main" id="mainCol">
     <div id="noFamilyBanner" class="no-family-banner" style="display:none;">
       <div class="nf-icon">👨‍👩‍👧‍👦</div>
-      <h3>You're not in a family yet</h3>
-      <p>Create a new family list or join an existing one with an invite code. Everyone in your family will share the same list.</p>
-      <button class="btn btn-primary" onclick="openFamilyScreen()">Set Up Family</button>
+      <h3 id="nfTitle">You're not in a family yet</h3>
+      <p id="nfSubtitle">Create a new family list or join an existing one with an invite code. Everyone in your family will share the same list.</p>
+      <button class="btn btn-primary" id="nfSetupBtn" onclick="openFamilyScreen()">Set Up Family</button>
     </div>
     <div id="listSection">
       <div class="filter-row" id="filterRow">
-        <button class="f-chip active" data-f="all"     onclick="setFilter(this,'all')">All</button>
-        <button class="f-chip" data-f="urgent"  onclick="setFilter(this,'urgent')">🔴 Urgent</button>
-        <button class="f-chip" data-f="food"    onclick="setFilter(this,'food')">🛒 Food</button>
-        <button class="f-chip" data-f="toys"    onclick="setFilter(this,'toys')">🧸 Toys</button>
-        <button class="f-chip" data-f="clothes" onclick="setFilter(this,'clothes')">👕 Clothes</button>
-        <button class="f-chip" data-f="school"  onclick="setFilter(this,'school')">🎒 School</button>
-        <button class="f-chip" data-f="house"   onclick="setFilter(this,'house')">🏡 House</button>
-        <button class="f-chip" data-f="health"  onclick="setFilter(this,'health')">💊 Health</button>
-        <button class="f-chip" data-f="fun"     onclick="setFilter(this,'fun')">🎉 Fun</button>
-        <button class="f-chip" data-f="other"   onclick="setFilter(this,'other')">📦 Other</button>
+        <button class="f-chip active" data-f="all"     onclick="setFilter(this,'all')" data-i18n="all">All</button>
+        <button class="f-chip" data-f="urgent"  onclick="setFilter(this,'urgent')" data-i18n="urgentFilter">🔴 Urgent</button>
+        <button class="f-chip" data-f="food"    onclick="setFilter(this,'food')">🛒 <span data-i18n="food">Food</span></button>
+        <button class="f-chip" data-f="toys"    onclick="setFilter(this,'toys')">🧸 <span data-i18n="toys">Toys</span></button>
+        <button class="f-chip" data-f="clothes" onclick="setFilter(this,'clothes')">👕 <span data-i18n="clothes">Clothes</span></button>
+        <button class="f-chip" data-f="school"  onclick="setFilter(this,'school')">🎒 <span data-i18n="school">School</span></button>
+        <button class="f-chip" data-f="house"   onclick="setFilter(this,'house')">🏡 <span data-i18n="house">House</span></button>
+        <button class="f-chip" data-f="health"  onclick="setFilter(this,'health')">💊 <span data-i18n="health">Health</span></button>
+        <button class="f-chip" data-f="fun"     onclick="setFilter(this,'fun')">🎉 <span data-i18n="fun">Fun</span></button>
+        <button class="f-chip" data-f="other"   onclick="setFilter(this,'other')">📦 <span data-i18n="other">Other</span></button>
       </div>
       <div class="list-filter-row" id="listFilterRow" style="display:none;">
         <span class="lf-label">Lists:</span>
@@ -578,7 +621,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
         <span class="result-info" id="resultInfo"></span>
         <div style="display:flex;gap:6px;align-items:center;">
           <button class="clear-btn" id="refreshBtn" onclick="manualRefresh()" title="Refresh list">↻</button>
-          <button class="clear-btn" onclick="confirmClearDone()">Clear done</button>
+          <button class="clear-btn" id="clearDoneBtn" onclick="confirmClearDone()">Clear done</button>
         </div>
       </div>
       <div class="items-list" id="itemsList"></div>
@@ -595,21 +638,21 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
       <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
       <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
     </svg>
-    List
+    <span data-i18n="list">List</span>
   </button>
   <button class="mn-btn" id="mnAdd" onclick="mobileShow('add')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/>
       <line x1="8" y1="12" x2="16" y2="12"/>
     </svg>
-    Add Item
+    <span data-i18n="addItem">Add Item</span>
   </button>
   <button class="mn-btn" id="mnLists" onclick="mobileShow('lists')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
       <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
     </svg>
-    My Lists
+    <span data-i18n="myLists">My Lists</span>
   </button>
 </nav>
 
@@ -618,6 +661,323 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
 const SRV = (location.hostname==='localhost'||location.hostname==='127.0.0.1')
   ? 'http://localhost:8080/api'
   : (location.origin + '/api');
+
+/* ═══ LANGUAGE / i18n ═══ */
+const TRANSLATIONS = {
+  en: {
+    // auth
+    appName: 'Family List',
+    authSubtitle: 'Your shared family shopping & to-do list. Sign up or log in to get started.',
+    login: 'Log In', signup: 'Sign Up',
+    lblLoginEmail: 'Email', lblLoginPwd: 'Password',
+    lblSignupName: 'Your Name', lblSignupEmail: 'Email',
+    lblSignupPwd: 'Password', lblSignupPwdHint: '(min 6 characters)',
+    loginBtn: 'Log In', signupBtn: 'Create Account',
+    phLoginEmail: 'you@example.com', phLoginPwd: 'Your password',
+    phSignupName: 'e.g. Sarah', phSignupEmail: 'you@example.com', phSignupPwd: 'Create a password',
+    // family screen
+    famTitle: 'Join or Create a Family',
+    famSubtitle: 'Create a new family list and share the invite code, or join an existing one.',
+    createFamily: 'Create Family', joinFamily: 'Join Family',
+    lblFamName: 'Family Name', hintFamName: 'This is the name your family members will see.',
+    phFamName: 'e.g. The Smiths',
+    lblJoinName: 'Family Name', hintJoinName: "The name of the family you're joining.",
+    phJoinName: 'e.g. The Smiths',
+    lblJoinCode: 'Invite Code', hintJoinCode: 'Ask your family member for their invite code.',
+    phJoinCode: 'e.g. BLUE-7492',
+    createFamBtn: 'Create Family', joinFamBtn: 'Join Family',
+    famSuccessTitle: 'Family Created!',
+    famSuccessMsg: 'Share this invite code with your family members so they can join:',
+    famSuccessHint: 'They go to "Join Family" and enter this code.',
+    famSuccessBtn: 'Go to My List →',
+    // add item
+    addItem: 'Add Item', myLists: 'My Lists',
+    lblAddedBy: 'Added by', lblItemName: 'Item name', lblCategory: 'Category',
+    lblPriority: 'Priority', lblNote: 'Note', lblNoteOptional: '(optional)',
+    phItemName: 'e.g. Milk, Batteries, Shampoo…',
+    phNote: 'Brand, size, quantity, link…',
+    submitBtn: 'Add to List',
+    // categories
+    food: 'Food', toys: 'Toys', clothes: 'Clothes', school: 'School',
+    house: 'House', health: 'Health', fun: 'Fun', other: 'Other',
+    // urgency
+    urgent: 'Urgent', normal: 'Normal', sometime: 'Someday',
+    // lists panel
+    listBuilderNew: 'New list', saveListBtn: 'Save List', updateListBtn: 'Update List',
+    phListName: 'List name…', phTiName: 'Item name…', phTiNote: 'Note (optional)…',
+    savedListsLabel: 'Saved lists', noSavedMsg: 'No saved lists yet',
+    tplEmptyMsg: 'No items yet — add below', tiAddBtn: '+ Add',
+    // filters
+    all: 'All', urgentFilter: '🔴 Urgent',
+    list: 'List',
+    // toolbar
+    clearDone: 'Clear done',
+    // no family banner
+    nfTitle: "You're not in a family yet",
+    nfSubtitle: 'Create a new family list or join an existing one with an invite code. Everyone in your family will share the same list.',
+    nfSetupBtn: 'Set Up Family',
+    // account menu
+    inviteCode: 'Invite code:',
+    familySettings: 'Family Settings', deleteFamily: '🗑 Delete Family', leaveFamily: '👋 Leave Family',
+    joinCreateFamily: 'Join / Create Family', logout: 'Log Out',
+    deleteAllItems: '🗑 Delete All Items', notInFamily: 'Not in a family yet.',
+    youLabel: 'you', removeBtn: 'Remove',
+    // confirm modal
+    cancelBtn: 'Cancel', deleteBtn: 'Delete',
+    // kicked overlay
+    kickedTitle: "You've been removed",
+    kickedDefault: 'You are no longer in this family.',
+    kickedOk: 'OK',
+    // toasts & errors
+    toastRefreshed: 'List refreshed', toastItemAdded: 'Added',
+    toastItemUpdated: 'Item updated', toastItemRemoved: 'Item removed',
+    toastFamilyDeleted: 'Family deleted', toastLeftFamily: 'Left family',
+    toastListDeleted: 'List deleted', toastListSaved: 'List saved',
+    toastNoCompleted: 'No completed items',
+    errFillAll: 'Fill in all fields', errEmailPwd: 'Enter email and password',
+    errFamName: 'Enter a family name', errJoinName: 'Enter the family name',
+    errJoinCode: 'Enter the invite code', errItemName: 'Enter an item name',
+    errPickCat: 'Pick a category', errListName: 'Give your list a name',
+    errAddOneItem: 'Add at least one item', errNoItems: 'No items to delete',
+    errJoinFirst: 'Join a family first',
+    // render
+    byLabel: 'by',
+    nothingNeeded: 'Nothing needed right now', nothingCategory: 'Nothing in this category',
+    addItemHint: 'Add an item using the form',
+    resultItem: 'item', resultItems: 'items',
+    allDone: 'All done!', itemsNeeded: 'items needed', itemNeeded: 'item needed',
+    editSave: 'Save', editCancel: 'Cancel',
+    addAll: 'Add All', editList: 'Edit', deleteList: 'Delete',
+    scItems: 'items', scItem: 'item',
+    listEditingPrefix: 'Editing: ',
+    editListToast: 'Edit then click Update List',
+    addedFrom: 'Added',
+    fromList: 'from',
+    // misc
+    loading: 'Loading…', loggingIn: 'Logging in…', creatingAccount: 'Creating account…',
+    creating: 'Creating…', joining: 'Joining…', adding: 'Adding…', saving: 'Saving…',
+  },
+  he: {
+    // auth
+    appName: 'רשימת המשפחה',
+    authSubtitle: 'רשימת הקניות והמשימות המשותפת שלכם. הירשמו או התחברו להתחלה.',
+    login: 'התחברות', signup: 'הרשמה',
+    lblLoginEmail: 'אימייל', lblLoginPwd: 'סיסמה',
+    lblSignupName: 'השם שלך', lblSignupEmail: 'אימייל',
+    lblSignupPwd: 'סיסמה', lblSignupPwdHint: '(לפחות 6 תווים)',
+    loginBtn: 'התחבר', signupBtn: 'צור חשבון',
+    phLoginEmail: 'you@example.com', phLoginPwd: 'הסיסמה שלך',
+    phSignupName: 'לדוגמה: שרה', phSignupEmail: 'you@example.com', phSignupPwd: 'צור סיסמה',
+    // family screen
+    famTitle: 'הצטרף או צור משפחה',
+    famSubtitle: 'צור רשימת משפחה חדשה ושתף את קוד ההזמנה, או הצטרף לקיימת.',
+    createFamily: 'צור משפחה', joinFamily: 'הצטרף למשפחה',
+    lblFamName: 'שם המשפחה', hintFamName: 'זה השם שחברי המשפחה שלך יראו.',
+    phFamName: 'לדוגמה: משפחת כהן',
+    lblJoinName: 'שם המשפחה', hintJoinName: 'שם המשפחה שאליה אתה מצטרף.',
+    phJoinName: 'לדוגמה: משפחת כהן',
+    lblJoinCode: 'קוד הזמנה', hintJoinCode: 'בקש מחבר המשפחה את קוד ההזמנה.',
+    phJoinCode: 'לדוגמה: BLUE-7492',
+    createFamBtn: 'צור משפחה', joinFamBtn: 'הצטרף למשפחה',
+    famSuccessTitle: 'המשפחה נוצרה!',
+    famSuccessMsg: 'שתף את קוד ההזמנה הזה עם חברי המשפחה שלך כדי שיוכלו להצטרף:',
+    famSuccessHint: 'הם ילכו ל"הצטרף למשפחה" ויזינו את הקוד הזה.',
+    famSuccessBtn: '← לרשימה שלי',
+    // add item
+    addItem: 'הוסף פריט', myLists: 'הרשימות שלי',
+    lblAddedBy: 'נוסף על ידי', lblItemName: 'שם הפריט', lblCategory: 'קטגוריה',
+    lblPriority: 'עדיפות', lblNote: 'הערה', lblNoteOptional: '(רשות)',
+    phItemName: 'לדוגמה: חלב, סוללות, שמפו…',
+    phNote: 'מותג, גודל, כמות, קישור…',
+    submitBtn: 'הוסף לרשימה',
+    // categories
+    food: 'מזון', toys: 'צעצועים', clothes: 'בגדים', school: 'בית ספר',
+    house: 'בית', health: 'בריאות', fun: 'כיף', other: 'אחר',
+    // urgency
+    urgent: 'דחוף', normal: 'רגיל', sometime: 'יום אחד',
+    // lists panel
+    listBuilderNew: 'רשימה חדשה', saveListBtn: 'שמור רשימה', updateListBtn: 'עדכן רשימה',
+    phListName: 'שם הרשימה…', phTiName: 'שם הפריט…', phTiNote: 'הערה (רשות)…',
+    savedListsLabel: 'רשימות שמורות', noSavedMsg: 'אין רשימות שמורות עדיין',
+    tplEmptyMsg: 'אין פריטים עדיין — הוסף למטה', tiAddBtn: '+ הוסף',
+    // filters
+    all: 'הכל', urgentFilter: '🔴 דחוף',
+    list: 'רשימה',
+    // toolbar
+    clearDone: 'מחק שהסתיים',
+    // no family banner
+    nfTitle: 'עדיין לא במשפחה',
+    nfSubtitle: 'צור רשימת משפחה חדשה או הצטרף לקיימת עם קוד הזמנה. כל חברי המשפחה שלך ישתפו את אותה הרשימה.',
+    nfSetupBtn: 'הגדר משפחה',
+    // account menu
+    inviteCode: 'קוד הזמנה:',
+    familySettings: 'הגדרות משפחה', deleteFamily: '🗑 מחק משפחה', leaveFamily: '👋 עזוב משפחה',
+    joinCreateFamily: 'הצטרף / צור משפחה', logout: 'התנתק',
+    deleteAllItems: '🗑 מחק את כל הפריטים', notInFamily: 'עדיין לא במשפחה.',
+    youLabel: 'את/ה', removeBtn: 'הסר',
+    // confirm modal
+    cancelBtn: 'ביטול', deleteBtn: 'מחק',
+    // kicked overlay
+    kickedTitle: 'הוסרת מהמשפחה',
+    kickedDefault: 'אינך עוד חלק ממשפחה זו.',
+    kickedOk: 'אישור',
+    // toasts & errors
+    toastRefreshed: 'הרשימה עודכנה', toastItemAdded: 'נוסף',
+    toastItemUpdated: 'הפריט עודכן', toastItemRemoved: 'הפריט הוסר',
+    toastFamilyDeleted: 'המשפחה נמחקה', toastLeftFamily: 'עזבת את המשפחה',
+    toastListDeleted: 'הרשימה נמחקה', toastListSaved: 'הרשימה נשמרה',
+    toastNoCompleted: 'אין פריטים שהסתיימו',
+    errFillAll: 'מלא את כל השדות', errEmailPwd: 'הזן אימייל וסיסמה',
+    errFamName: 'הזן שם משפחה', errJoinName: 'הזן את שם המשפחה',
+    errJoinCode: 'הזן את קוד ההזמנה', errItemName: 'הזן שם פריט',
+    errPickCat: 'בחר קטגוריה', errListName: 'תן שם לרשימה שלך',
+    errAddOneItem: 'הוסף לפחות פריט אחד', errNoItems: 'אין פריטים למחיקה',
+    errJoinFirst: 'הצטרף למשפחה תחילה',
+    // render
+    byLabel: 'ע"י',
+    nothingNeeded: 'לא צריך כלום כרגע', nothingCategory: 'אין כלום בקטגוריה זו',
+    addItemHint: 'הוסף פריט באמצעות הטופס',
+    resultItem: 'פריט', resultItems: 'פריטים',
+    allDone: 'הכל הושלם!', itemsNeeded: 'פריטים נדרשים', itemNeeded: 'פריט נדרש',
+    editSave: 'שמור', editCancel: 'ביטול',
+    addAll: 'הוסף הכל', editList: 'ערוך', deleteList: 'מחק',
+    scItems: 'פריטים', scItem: 'פריט',
+    listEditingPrefix: 'עריכה: ',
+    editListToast: 'ערוך ואז לחץ עדכן רשימה',
+    addedFrom: 'נוספו',
+    fromList: 'מ',
+    // misc
+    loading: 'טוען…', loggingIn: 'מתחבר…', creatingAccount: 'יוצר חשבון…',
+    creating: 'יוצר…', joining: 'מצטרף…', adding: 'מוסיף…', saving: 'שומר…',
+  }
+};
+
+let LANG = 'en';
+function getLang(){ return LANG; }
+function t(key){ return TRANSLATIONS[LANG][key] || TRANSLATIONS['en'][key] || key; }
+
+function setLang(lang){
+  LANG = lang;
+  localStorage.setItem('fl_lang', lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+  applyTranslations();
+}
+
+function applyTranslations(){
+  const L = LANG;
+  // lang toggle buttons
+  const authEN = document.getElementById('authLangEN');
+  const authHE = document.getElementById('authLangHE');
+  const hEN = document.getElementById('hLangEN');
+  const hHE = document.getElementById('hLangHE');
+  if(authEN){ authEN.classList.toggle('active', L==='en'); }
+  if(authHE){ authHE.classList.toggle('active', L==='he'); }
+  if(hEN){ hEN.classList.toggle('active', L==='en'); }
+  if(hHE){ hHE.classList.toggle('active', L==='he'); }
+
+  // Helper to safely set textContent
+  const tx = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=t(key); };
+  const ph = (id, key) => { const el=document.getElementById(id); if(el) el.placeholder=t(key); };
+  const tv = (id, key) => { const el=document.getElementById(id); if(el) el.value=t(key); };
+
+  // Auth screen
+  tx('authTitle','appName');
+  tx('authSubtitle','authSubtitle');
+  tx('authTabLogin','login'); tx('authTabSignup','signup');
+  tx('lblLoginEmail','lblLoginEmail'); tx('lblLoginPwd','lblLoginPwd');
+  tx('lblSignupName','lblSignupName'); tx('lblSignupEmail','lblSignupEmail');
+  tx('lblSignupPwd','lblSignupPwd'); tx('lblSignupPwdHint','lblSignupPwdHint');
+  // keep "Password " prefix on label
+  const pwdLbl = document.getElementById('lblSignupPwd');
+  if(pwdLbl && pwdLbl.childNodes[0]) pwdLbl.childNodes[0].textContent = t('lblSignupPwd')+' ';
+  tx('loginBtn', 'loginBtn'); tx('signupBtn','signupBtn');
+  ph('loginEmail','phLoginEmail'); ph('loginPwd','phLoginPwd');
+  ph('signupName','phSignupName'); ph('signupEmail','phSignupEmail'); ph('signupPwd','phSignupPwd');
+
+  // Family screen
+  tx('famTitle','famTitle'); tx('famSubtitle','famSubtitle');
+  tx('famTabCreate','createFamily'); tx('famTabJoin','joinFamily');
+  tx('lblFamName','lblFamName'); tx('hintFamName','hintFamName');
+  ph('famName','phFamName');
+  tx('lblJoinName','lblJoinName'); tx('hintJoinName','hintJoinName');
+  ph('joinName','phJoinName');
+  tx('lblJoinCode','lblJoinCode'); tx('hintJoinCode','hintJoinCode');
+  ph('joinCode','phJoinCode');
+  tx('createFamBtn','createFamBtn'); tx('joinFamBtn','joinFamBtn');
+  tx('famSuccessTitle','famSuccessTitle'); tx('famSuccessMsg','famSuccessMsg');
+  tx('famSuccessHint','famSuccessHint'); tx('famSuccessBtn','famSuccessBtn');
+
+  // Add item panel
+  tx('lblAddedBy','lblAddedBy'); tx('lblItemName','lblItemName'); tx('lblCategory','lblCategory');
+  tx('lblPriority','lblPriority'); tx('lblNote','lblNote'); tx('lblNoteOptional','lblNoteOptional');
+  ph('fName','phItemName'); ph('fNote','phNote');
+  tx('submitBtn','submitBtn');
+
+  // Sidebar tabs
+  tx('sbTabAdd','addItem'); tx('sbTabLists','myLists');
+
+  // Lists panel
+  // listBuilderLabel handled dynamically in JS
+  ph('tplName','phListName'); ph('tiName','phTiName'); ph('tiNote','phTiNote');
+  tx('tiAddBtn','tiAddBtn');
+  tx('savedListsLabel','savedListsLabel');
+  tx('saveListBtn','saveListBtn');
+
+  // Toolbar
+  tx('clearDoneBtn','clearDone');
+
+  // No family banner
+  tx('nfTitle','nfTitle'); tx('nfSubtitle','nfSubtitle'); tx('nfSetupBtn','nfSetupBtn');
+
+  // Account menu
+  const amInvLabel = document.getElementById('amInviteLabel');
+  if(amInvLabel) amInvLabel.textContent = t('inviteCode');
+  tx('amLogoutBtn','logout');
+  tx('amInviteLabel','inviteCode');
+  const deleteAllBtn = document.querySelector('.am-btn.danger[onclick="adminDeleteAllItems()"]');
+  if(deleteAllBtn) deleteAllBtn.textContent = t('deleteAllItems');
+  tx('amNoFam','notInFamily');
+
+  tx('kickedOkBtn','kickedOk');
+
+  // Confirm modal
+  const cancelBtn = document.querySelector('#confirmModal .btn-ghost');
+  if(cancelBtn) cancelBtn.textContent = t('cancelBtn');
+
+  // Kicked overlay
+  tx('kickedTitle','kickedTitle');
+
+  // Mobile nav data-i18n spans
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if(key && TRANSLATIONS[LANG][key]) el.textContent = TRANSLATIONS[LANG][key];
+  });
+
+  // Category labels in selects
+  const catMap = {food:'food',toys:'toys',clothes:'clothes',school:'school',house:'house',health:'health',fun:'fun',other:'other'};
+  ['tiCat','ei-cat'].forEach(selectId => {
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    Array.from(sel.options).forEach(opt => {
+      const catKey = opt.value;
+      if(catMap[catKey]) opt.textContent = (CE[catKey]||'') + ' ' + t(catKey);
+    });
+  });
+  // Urgency selects
+  ['tiUrg','ei-urg'].forEach(selectId => {
+    const sel = document.getElementById(selectId);
+    if(!sel) return;
+    Array.from(sel.options).forEach(opt => {
+      const urgKey = opt.value;
+      opt.textContent = t(urgKey);
+    });
+  });
+
+  // Refresh the main render so item cards use translated strings
+  if(typeof render === 'function') render();
+  if(typeof updateHeader === 'function') updateHeader();
+}
 
 // Current user session (persisted to localStorage)
 let SESSION = null; // { userId, name, email, familyId }
@@ -659,8 +1019,8 @@ async function doLogin(){
   const err   = document.getElementById('loginErr');
   const btn   = document.getElementById('loginBtn');
   err.classList.remove('show');
-  if (!email||!pwd){ showErr(err,'Enter email and password'); return; }
-  btn.disabled=true; btn.textContent='Logging in…';
+  if (!email||!pwd){ showErr(err,t('errEmailPwd')); return; }
+  btn.disabled=true; btn.textContent=t('loggingIn');
   try {
     const { user, family } = await apiFetch('/auth/login', {
       method:'POST', body: JSON.stringify({email,password:pwd})
@@ -672,7 +1032,7 @@ async function doLogin(){
   } catch(e) {
     showErr(err, e.message);
   } finally {
-    btn.disabled=false; btn.textContent='Log In';
+    btn.disabled=false; btn.textContent=t('loginBtn');
   }
 }
 
@@ -683,8 +1043,8 @@ async function doSignup(){
   const err   = document.getElementById('signupErr');
   const btn   = document.getElementById('signupBtn');
   err.classList.remove('show');
-  if (!name||!email||!pwd){ showErr(err,'Fill in all fields'); return; }
-  btn.disabled=true; btn.textContent='Creating account…';
+  if (!name||!email||!pwd){ showErr(err,t('errFillAll')); return; }
+  btn.disabled=true; btn.textContent=t('creatingAccount');
   try {
     await apiFetch('/auth/signup', { method:'POST', body: JSON.stringify({name,email,password:pwd}) });
     // auto login after signup
@@ -698,7 +1058,7 @@ async function doSignup(){
   } catch(e) {
     showErr(err, e.message);
   } finally {
-    btn.disabled=false; btn.textContent='Create Account';
+    btn.disabled=false; btn.textContent=t('signupBtn');
   }
 }
 
@@ -749,14 +1109,14 @@ async function leaveFamilyThenOpen(){
       try {
         await apiFetch('/family/delete', { method: 'POST' });
       } catch(e) { toast(e.message); return; }
-      toast('Family deleted');
+      toast(t('toastFamilyDeleted'));
     } else {
       const ok = await confirm2('Leave family?', 'You will need an invite code to rejoin.', '👋', 'Leave');
       if (!ok) return;
       try {
         await apiFetch('/family/leave', { method: 'POST' });
       } catch(e) { toast(e.message); return; }
-      toast('Left family');
+      toast(t('toastLeftFamily'));
     }
     SESSION.familyId = null;
     FAMILY = null;
@@ -780,8 +1140,8 @@ async function doCreateFamily(){
   const err  = document.getElementById('createErr');
   const btn  = document.getElementById('createFamBtn');
   err.classList.remove('show');
-  if (!name){ showErr(err,'Enter a family name'); return; }
-  btn.disabled=true; btn.textContent='Creating…';
+  if (!name){ showErr(err,t('errFamName')); return; }
+  btn.disabled=true; btn.textContent=t('creating');
   try {
     const { family } = await apiFetch('/family/create', { method:'POST', body: JSON.stringify({name}) });
     FAMILY = family;
@@ -797,7 +1157,7 @@ async function doCreateFamily(){
   } catch(e) {
     showErr(err, e.message);
   } finally {
-    btn.disabled=false; btn.textContent='Create Family';
+    btn.disabled=false; btn.textContent=t('createFamBtn');
   }
 }
 
@@ -807,9 +1167,9 @@ async function doJoinFamily(){
   const err  = document.getElementById('joinErr');
   const btn  = document.getElementById('joinFamBtn');
   err.classList.remove('show');
-  if (!name){ showErr(err,'Enter the family name'); return; }
-  if (!code){ showErr(err,'Enter the invite code'); return; }
-  btn.disabled=true; btn.textContent='Joining…';
+  if (!name){ showErr(err,t('errJoinName')); return; }
+  if (!code){ showErr(err,t('errJoinCode')); return; }
+  btn.disabled=true; btn.textContent=t('joining');
   try {
     const { family } = await apiFetch('/family/join', { method:'POST', body: JSON.stringify({code, name}) });
     FAMILY = family;
@@ -820,7 +1180,7 @@ async function doJoinFamily(){
   } catch(e) {
     showErr(err, e.message);
   } finally {
-    btn.disabled=false; btn.textContent='Join Family';
+    btn.disabled=false; btn.textContent=t('joinFamBtn');
   }
 }
 
@@ -873,14 +1233,14 @@ async function updateAccountMenu(){
     document.getElementById('amFamName').textContent = FAMILY.name;
     document.getElementById('amFamCode').textContent = FAMILY.code;
     const isOwner = FAMILY.ownerId === SESSION.userId;
-    document.getElementById('amFamBtn').textContent = isOwner ? '🗑 Delete Family' : '👋 Leave Family';
+    document.getElementById('amFamBtn').textContent = isOwner ? t('deleteFamily') : t('leaveFamily');
     document.getElementById('amFamBtn').classList.toggle('danger', isOwner);
     if (isOwner) loadMembers();
     else document.getElementById('amMembersBlock').style.display = 'none';
   } else {
     document.getElementById('amFamBlock').style.display = 'none';
     document.getElementById('amNoFam').style.display = '';
-    document.getElementById('amFamBtn').textContent = 'Join / Create Family';
+    document.getElementById('amFamBtn').textContent = t('joinCreateFamily');
     document.getElementById('amFamBtn').classList.remove('danger');
   }
   document.getElementById('hUser').textContent = SESSION.name;
@@ -894,8 +1254,8 @@ async function loadMembers(){
     el.innerHTML = members.map(m => `
       <div class="am-member">
         <span class="am-member-name">${esc(m.name)}</span>
-        ${m.id === SESSION.userId ? '<span class="am-member-you">you</span>' : ''}
-        ${m.id !== SESSION.userId ? `<button class="am-member-kick" onclick="kickMember('${m.id}','${esc(m.name)}')">Remove</button>` : ''}
+        ${m.id === SESSION.userId ? `<span class="am-member-you">${t('youLabel')}</span>` : ''}
+        ${m.id !== SESSION.userId ? `<button class="am-member-kick" onclick="kickMember('${m.id}','${esc(m.name)}')">${t('removeBtn')}</button>` : ''}
       </div>`).join('');
     document.getElementById('amMembersBlock').style.display = '';
   } catch(e) { console.warn(e); }
@@ -906,7 +1266,7 @@ async function kickMember(memberId, memberName){
   if (!ok) return;
   try {
     await apiFetch('/family/kick/'+memberId, { method:'POST' });
-    toast(memberName + ' removed');
+    toast(memberName + ' ' + t('removeBtn'));
     loadMembers();
   } catch(e) { toast(e.message); }
 }
@@ -954,7 +1314,7 @@ function mobileShow(view){
 /* ═══ STATE ═══ */
 let items=[],selCat=null,selUrg='normal',activeF='all',activeListF=null,editId=null;
 const CE={food:'🛒',toys:'🧸',clothes:'👕',school:'🎒',house:'🏡',health:'💊',fun:'🎉',other:'📦'};
-const UL={urgent:'Urgent',normal:'Normal',sometime:'Someday'};
+function UL(u){ return t(u)||u; }
 const UC={urgent:'#dc2626',normal:'#16a34a',sometime:'#94a3b8'};
 const CATS=['food','toys','clothes','school','house','health','fun','other'];
 const URGS=['urgent','normal','sometime'];
@@ -977,32 +1337,33 @@ async function manualRefresh(){
   if(btn){ btn.style.transform='rotate(360deg)'; btn.style.transition='transform 0.4s ease'; }
   await load();
   setTimeout(()=>{ if(btn){ btn.style.transform=''; btn.style.transition=''; } }, 400);
-  toast('List refreshed');
+  toast(t('toastRefreshed'));
 }
 function updateHeader(){
   const o=items.filter(i=>!i.done).length;
   document.getElementById('hCount').textContent=o;
-  document.getElementById('hSub').textContent=FAMILY?(FAMILY.name+' · '+(o===0?'All done!':o+' item'+(o!==1?'s':'')+' needed')):(o===0?'All done!':o+' item'+(o!==1?'s':'')+' needed');
+  const needed = o===1 ? t('itemNeeded') : t('itemsNeeded');
+  document.getElementById('hSub').textContent=FAMILY?(FAMILY.name+' · '+(o===0?t('allDone'):o+' '+needed)):(o===0?t('allDone'):o+' '+needed);
 }
 
 /* ═══ ITEMS ═══ */
 async function addItem(){
-  if (!SESSION?.familyId){ toast('Join a family first'); openFamilyScreen(); return; }
+  if (!SESSION?.familyId){ toast(t('errJoinFirst')); openFamilyScreen(); return; }
   const name=document.getElementById('fName').value.trim();
   const note=document.getElementById('fNote').value.trim();
-  if(!name){toast('Enter an item name');return;}
-  if(!selCat){toast('Pick a category');return;}
+  if(!name){toast(t('errItemName'));return;}
+  if(!selCat){toast(t('errPickCat'));return;}
   const btn=document.getElementById('submitBtn');
-  btn.disabled=true;btn.textContent='Adding…';
+  btn.disabled=true;btn.textContent=t('adding');
   try{
     const item=await apiFetch('/items',{method:'POST',body:JSON.stringify({name,category:selCat,urgency:selUrg,note})});
     items.unshift(item);render();updateHeader();
     document.getElementById('fName').value='';
     document.getElementById('fNote').value='';
-    toast('Added "'+name+'"');
+    toast(t('toastItemAdded')+' "'+name+'"');
     if(isMob())mobileShow('list');
   }catch(e){toast(e.message||'Something went wrong');}
-  finally{btn.disabled=false;btn.textContent='Add to List';}
+  finally{btn.disabled=false;btn.textContent=t('submitBtn');}
 }
 
 async function toggleDone(id, done) {
@@ -1038,25 +1399,24 @@ async function confDelItem(id){
   const item=items.find(i=>i.id===id);const name=item?item.name:'this item';
   const ok=await confirm2('Delete item?',`Remove "${name}"?`);if(!ok)return;
   await apiFetch('/items/'+id,{method:'DELETE'});
-  items=items.filter(i=>i.id!==id);render();updateHeader();toast('Item removed');
+  items=items.filter(i=>i.id!==id);render();updateHeader();toast(t('toastItemRemoved'));
 }
 
 async function confirmClearDone(){
   const n=items.filter(i=>i.done).length;
-  if(!n){toast('No completed items');return;}
+  if(!n){toast(t('toastNoCompleted'));return;}
   const ok=await confirm2('Clear done items?',`Remove all ${n} completed item${n!==1?'s':''}?`);if(!ok)return;
   await apiFetch('/items/done/all',{method:'DELETE'});
-  items=items.filter(i=>!i.done);render();updateHeader();toast('Cleared '+n+' item'+(n!==1?'s':''));
+  items=items.filter(i=>!i.done);render();updateHeader();toast(t('clearDone')+': '+n);
 }
 
 async function adminDeleteAllItems(){
   const n=items.length;
   closeAccountMenu();
-  if(!n){toast('No items to delete');return;}
+  if(!n){toast(t('errNoItems'));return;}
   const ok=await confirm2('Delete ALL items?',`Permanently remove all ${n} item${n!==1?'s':''} for the whole family. This cannot be undone.`,'🗑','Delete All');
   if(!ok)return;
   try{
-    // Try bulk endpoint first, fall back to one-by-one
     try{ await apiFetch('/items/all',{method:'DELETE'}); }
     catch{ await Promise.all(items.map(i=>apiFetch('/items/'+i.id,{method:'DELETE'}))); }
     items=[];render();updateHeader();toast('All '+n+' item'+(n!==1?'s':'')+' deleted');
@@ -1068,7 +1428,7 @@ function renderListFilters(){
   const row=document.getElementById('listFilterRow');
   if(!serverLists.length){row.style.display='none';return;}
   row.style.display='flex';
-  row.innerHTML='<span class="lf-label">Lists:</span>'+serverLists.map(t=>`<button class="f-chip list-chip${activeListF===t.id?' active':''}" onclick="setListFilter('${t.id}')">${esc(t.name)}</button>`).join('');
+  row.innerHTML='<span class="lf-label">'+t('myLists')+':</span>'+serverLists.map(lst=>`<button class="f-chip list-chip${activeListF===lst.id?' active':''}" onclick="setListFilter('${lst.id}')">${esc(lst.name)}</button>`).join('');
 }
 
 function render(){
@@ -1078,8 +1438,8 @@ function render(){
   else if(activeF==='urgent'){f=f.filter(i=>i.urgency==='urgent'&&!i.done);}
   else if(activeF!=='all'){f=f.filter(i=>i.category===activeF);}
   f.sort((a,b)=>{if(!a.done&&b.done)return -1;if(a.done&&!b.done)return 1;const o={urgent:0,normal:1,sometime:2};if(!a.done&&!b.done)return o[a.urgency]-o[b.urgency];return 0;});
-  document.getElementById('resultInfo').textContent=f.length+' item'+(f.length!==1?'s':'');
-  if(!f.length){el.innerHTML=`<div class="empty"><div class="empty-icon">${activeF==='all'?'✓':CE[activeF]||'🔍'}</div><div class="empty-title">${activeF==='all'?'Nothing needed right now':'Nothing in this category'}</div><div class="empty-sub">Add an item using the form</div></div>`;return;}
+  document.getElementById('resultInfo').textContent=f.length+' '+(f.length===1?t('resultItem'):t('resultItems'));
+  if(!f.length){el.innerHTML=`<div class="empty"><div class="empty-icon">${activeF==='all'?'✓':CE[activeF]||'🔍'}</div><div class="empty-title">${activeF==='all'?t('nothingNeeded'):t('nothingCategory')}</div><div class="empty-sub">${t('addItemHint')}</div></div>`;return;}
   el.innerHTML=f.map(item=>{
     if(editId===item.id)return editCard(item);
     return `<div class="item-card ${item.done?'done':''} ul-${item.urgency}" id="c-${item.id}">
@@ -1087,11 +1447,11 @@ function render(){
       <div class="ic-body">
         <div class="ic-top">
           <span class="ic-name">${esc(item.name)}</span>
-          <span class="cat-tag ct-${item.category}">${CE[item.category]||'📦'} ${cap(item.category)}</span>
-          <span class="urg-tag ut-${item.urgency}">${UL[item.urgency]}</span>
+          <span class="cat-tag ct-${item.category}">${CE[item.category]||'📦'} ${t(item.category)}</span>
+          <span class="urg-tag ut-${item.urgency}">${UL(item.urgency)}</span>
         </div>
         ${item.note?`<div class="ic-note">${esc(item.note)}</div>`:''}
-        <div class="ic-meta"><span>by ${esc(item.who)}</span><span>·</span><span>${ago(item.createdAt)}</span></div>
+        <div class="ic-meta"><span>${t('byLabel')} ${esc(item.who)}</span><span>·</span><span>${ago(item.createdAt)}</span></div>
       </div>
       <div class="ic-acts">
         <button class="ia" onclick="startEdit('${item.id}')" title="Edit">✎</button>
@@ -1104,15 +1464,15 @@ function render(){
 function editCard(item){return `<div class="item-card editing ul-${item.urgency}" id="c-${item.id}">
   <button class="chk ${item.done?'on':''}" onclick="toggleDone('${item.id}',${!item.done})">${item.done?'✓':''}</button>
   <div class="ic-edit">
-    <input id="ei-n" value="${esc(item.name)}" placeholder="Item name…" maxlength="80">
-    <textarea id="ei-note" rows="2" placeholder="Note…">${esc(item.note||'')}</textarea>
+    <input id="ei-n" value="${esc(item.name)}" placeholder="${t('phItemName')}" maxlength="80">
+    <textarea id="ei-note" rows="2" placeholder="${t('phNote')}">${esc(item.note||'')}</textarea>
     <div class="ic-edit-row">
-      <select id="ei-cat">${CATS.map(c=>`<option value="${c}"${c===item.category?' selected':''}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
-      <select id="ei-urg">${URGS.map(u=>`<option value="${u}"${u===item.urgency?' selected':''}>${UL[u]}</option>`).join('')}</select>
+      <select id="ei-cat">${CATS.map(c=>`<option value="${c}"${c===item.category?' selected':''}>${CE[c]} ${t(c)}</option>`).join('')}</select>
+      <select id="ei-urg">${URGS.map(u=>`<option value="${u}"${u===item.urgency?' selected':''}>${UL(u)}</option>`).join('')}</select>
     </div>
     <div class="ic-edit-acts">
-      <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="cancelEdit()">Cancel</button>
-      <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="saveEdit('${item.id}')">Save</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="cancelEdit()">${t('editCancel')}</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:5px 11px;" onclick="saveEdit('${item.id}')">${t('editSave')}</button>
     </div>
   </div>
 </div>`;}
@@ -1124,10 +1484,10 @@ async function saveEdit(id){
   const note=document.getElementById('ei-note')?.value.trim()||'';
   const cat=document.getElementById('ei-cat')?.value;
   const urg=document.getElementById('ei-urg')?.value;
-  if(!name){toast('Name cannot be empty');return;}
+  if(!name){toast(t('errItemName'));return;}
   await apiFetch('/items/'+id,{method:'PATCH',body:JSON.stringify({name,note,category:cat,urgency:urg})});
   const i=items.findIndex(x=>x.id===id);if(i!==-1)items[i]={...items[i],name,note,category:cat,urgency:urg};
-  editId=null;render();toast('Item updated');
+  editId=null;render();toast(t('toastItemUpdated'));
 }
 
 /* ═══ TEMPLATES (stored in localStorage — per device) ═══ */
@@ -1149,7 +1509,7 @@ function addTplItem(){
   const note=document.getElementById('tiNote').value.trim();
   const cat=document.getElementById('tiCat').value;
   const urg=document.getElementById('tiUrg').value;
-  if(!name){toast('Enter item name');return;}
+  if(!name){toast(t('errItemName'));return;}
   tplItems.push({name,note,category:cat,urgency:urg});
   document.getElementById('tiName').value='';document.getElementById('tiNote').value='';
   document.getElementById('tiName').focus();
@@ -1168,13 +1528,13 @@ function syncTpl(){
 function remTplItem(idx){syncTpl();tplItems.splice(idx,1);renderTplItems();}
 function renderTplItems(){
   const area=document.getElementById('tplArea');
-  if(!tplItems.length){area.innerHTML='<div class="tpl-empty">No items yet — add below</div>';return;}
+  if(!tplItems.length){area.innerHTML=`<div class="tpl-empty">${t('tplEmptyMsg')}</div>`;return;}
   area.innerHTML=tplItems.map((it,i)=>`
     <div class="ti-row">
       <div class="ti-top">
-        <input class="ti-n" value="${esc(it.name)}" maxlength="80" onchange="syncTpl()" placeholder="Item…">
+        <input class="ti-n" value="${esc(it.name)}" maxlength="80" onchange="syncTpl()" placeholder="${t('phItemName')}">
         <select class="ti-c" onchange="syncTpl()">${CATS.map(c=>`<option value="${c}"${c===it.category?' selected':''}>${CE[c]} ${cap(c)}</option>`).join('')}</select>
-        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}>${UL[u]}</option>`).join('')}</select>
+        <select class="ti-u" onchange="syncTpl()">${URGS.map(u=>`<option value="${u}"${u===it.urgency?' selected':''}>${UL(u)}</option>`).join('')}</select>
         <button class="ti-del" onclick="remTplItem(${i})">✕</button>
       </div>
       <input class="ti-note-inp" value="${esc(it.note||'')}" placeholder="Note…" onchange="syncTpl()">
@@ -1184,17 +1544,17 @@ function renderTplItems(){
 async function saveTemplate(){
   syncTpl();
   const name=document.getElementById('tplName').value.trim();
-  if(!name){toast('Give your list a name');return;}
+  if(!name){toast(t('errListName'));return;}
   tplItems=tplItems.filter(it=>it.name.trim());
-  if(!tplItems.length){toast('Add at least one item');return;}
+  if(!tplItems.length){toast(t('errAddOneItem'));return;}
   const btn=document.getElementById('saveListBtn');
   btn.disabled=true;
   try {
     if(editTplId){
       await apiFetch('/lists/'+editTplId,{method:'PUT',body:JSON.stringify({name,items:tplItems})});
       editTplId=null;
-      document.getElementById('listBuilderLabel').textContent='New list';
-      btn.textContent='Save List';
+      document.getElementById('listBuilderLabel').textContent=t('listBuilderNew');
+      btn.textContent=t('saveListBtn');
     } else {
       await apiFetch('/lists',{method:'POST',body:JSON.stringify({name,items:tplItems})});
     }
@@ -1202,37 +1562,37 @@ async function saveTemplate(){
     document.getElementById('tplName').value='';
     renderTplItems();
     await loadLists();
-    toast('List "'+name+'" saved');
+    toast(t('toastListSaved')+' "'+name+'"');
   } catch(e){ toast(e.message); }
   finally { btn.disabled=false; }
 }
 
 function editTpl(id){
-  const t=serverLists.find(x=>x.id===id);if(!t)return;
-  editTplId=id;document.getElementById('tplName').value=t.name;
-  document.getElementById('listBuilderLabel').textContent='Editing: '+t.name;
-  document.getElementById('saveListBtn').textContent='Update List';
-  tplItems=t.items.map(x=>({...x}));
+  const tpl=serverLists.find(x=>x.id===id);if(!tpl)return;
+  editTplId=id;document.getElementById('tplName').value=tpl.name;
+  document.getElementById('listBuilderLabel').textContent=t('listEditingPrefix')+tpl.name;
+  document.getElementById('saveListBtn').textContent=t('updateListBtn');
+  tplItems=tpl.items.map(x=>({...x}));
   renderTplItems();
   document.getElementById('sbPanelLists').scrollTo({top:0,behavior:'smooth'});
   document.getElementById('tplName').focus();
-  toast('Edit then click Update List');
+  toast(t('editListToast'));
 }
 
 async function loadTpl(id){
-  const t=serverLists.find(x=>x.id===id);if(!t){toast('Not found');return;}
-  if(!SESSION?.familyId){toast('Join a family first');openFamilyScreen();return;}
-  document.querySelectorAll('.sc-b-add').forEach(b=>{b.disabled=true;b.textContent='Adding…';});
+  const tpl=serverLists.find(x=>x.id===id);if(!tpl){toast('Not found');return;}
+  if(!SESSION?.familyId){toast(t('errJoinFirst'));openFamilyScreen();return;}
+  document.querySelectorAll('.sc-b-add').forEach(b=>{b.disabled=true;b.textContent=t('adding');});
   let n=0;
-  for(const it of t.items){
+  for(const it of tpl.items){
     try{
-      const item=await apiFetch('/items',{method:'POST',body:JSON.stringify({name:it.name,category:it.category||'other',urgency:it.urgency||'normal',note:it.note||'',list_id:t.id})});
+      const item=await apiFetch('/items',{method:'POST',body:JSON.stringify({name:it.name,category:it.category||'other',urgency:it.urgency||'normal',note:it.note||'',list_id:tpl.id})});
       items.unshift(item);n++;
     }catch{}
   }
   render();updateHeader();
-  document.querySelectorAll('.sc-b-add').forEach(b=>{b.disabled=false;b.textContent='Add All';});
-  toast('Added '+n+' item'+(n!==1?'s':'')+' from "'+t.name+'"');
+  document.querySelectorAll('.sc-b-add').forEach(b=>{b.disabled=false;b.textContent=t('addAll');});
+  toast(t('addedFrom')+' '+n+' '+(n===1?t('resultItem'):t('resultItems'))+' '+t('fromList')+' "'+tpl.name+'"');
   if(isMob())mobileShow('list');
 }
 
@@ -1243,7 +1603,7 @@ async function delTpl(id,name){
     if(activeListF===id)activeListF=null;
     await loadLists();
     render();
-    toast('List deleted');
+    toast(t('toastListDeleted'));
   } catch(e){ toast(e.message); }
 }
 
@@ -1251,24 +1611,24 @@ function togglePreview(id){const p=document.getElementById('pr-'+id);const open=
 
 function renderSavedCards(){
   const el=document.getElementById('savedCards');
-  if(!serverLists.length){el.innerHTML='<div class="no-saved">No saved lists yet</div>';return;}
-  el.innerHTML=serverLists.map(t=>`
+  if(!serverLists.length){el.innerHTML=`<div class="no-saved">${t('noSavedMsg')}</div>`;return;}
+  el.innerHTML=serverLists.map(lst=>`
     <div class="sc-card">
       <div class="sc-head">
-        <span class="sc-name">${esc(t.name)}</span>
-        <span class="sc-cnt">${t.items.length} item${t.items.length!==1?'s':''}</span>
+        <span class="sc-name">${esc(lst.name)}</span>
+        <span class="sc-cnt">${lst.items.length} ${lst.items.length===1?t('scItem'):t('scItems')}</span>
         <div class="sc-acts">
-          <button class="sc-b sc-b-add" onclick="loadTpl('${t.id}')">Add All</button>
-          <button class="sc-b sc-b-edit" onclick="editTpl('${t.id}')">Edit</button>
-          <button class="sc-b sc-b-del"  onclick="delTpl('${t.id}','${esc(t.name)}')">Delete</button>
-          <button class="sc-b sc-b-tog"  onclick="togglePreview('${t.id}')">▾</button>
+          <button class="sc-b sc-b-add" onclick="loadTpl('${lst.id}')">${t('addAll')}</button>
+          <button class="sc-b sc-b-edit" onclick="editTpl('${lst.id}')">${t('editList')}</button>
+          <button class="sc-b sc-b-del"  onclick="delTpl('${lst.id}','${esc(lst.name)}')">${t('deleteList')}</button>
+          <button class="sc-b sc-b-tog"  onclick="togglePreview('${lst.id}')">▾</button>
         </div>
       </div>
-      <div class="sc-preview" id="pr-${t.id}">
-        ${t.items.map(it=>`<div class="sc-pi">
+      <div class="sc-preview" id="pr-${lst.id}">
+        ${lst.items.map(it=>`<div class="sc-pi">
           <span style="width:6px;height:6px;border-radius:50%;background:${UC[it.urgency||'normal']};display:inline-block;flex-shrink:0;"></span>
           <span class="sc-pi-name">${esc(it.name)}</span>
-          <span style="font-size:10px;color:var(--soft);">${CE[it.category]||'📦'} ${cap(it.category)}</span>
+          <span style="font-size:10px;color:var(--soft);">${CE[it.category]||'📦'} ${t(it.category)}</span>
           ${it.note?`<span style="font-size:10px;color:var(--soft);flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.note)}</span>`:''}
         </div>`).join('')}
       </div>
@@ -1279,7 +1639,7 @@ function renderSavedCards(){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function cap(s){return s?s[0].toUpperCase()+s.slice(1):'';}
 function ago(iso){const s=Math.floor((Date.now()-new Date(iso))/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return new Date(iso).toLocaleDateString();}
-function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+function toast(msg){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2500);}
 
 /* ═══ INIT ═══ */
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')addItem();});
@@ -1293,7 +1653,8 @@ function startSSE() {
   sse.addEventListener('listsRefresh', () => { loadLists(); });
   sse.addEventListener('kicked', (e) => {
     const data = JSON.parse(e.data);
-    document.getElementById('kickedMsg').textContent = data.reason || 'You are no longer in this family.';
+    document.getElementById('kickedMsg').textContent = data.reason || t('kickedDefault');
+    document.getElementById('kickedTitle').textContent = t('kickedTitle');
     document.getElementById('kickedOverlay').classList.add('show');
     sse.close(); sse = null;
   });
@@ -1317,6 +1678,13 @@ function handleKicked(){
 setInterval(() => { if (SESSION?.familyId && (!sse || sse.readyState === 2)) load(); }, 30000);
 
 (async function init(){
+  // Load saved language preference
+  const savedLang = localStorage.getItem('fl_lang') || 'en';
+  LANG = savedLang;
+  document.documentElement.lang = savedLang;
+  document.documentElement.dir = savedLang === 'he' ? 'rtl' : 'ltr';
+  applyTranslations();
+
   SESSION = getSession();
   if (!SESSION) {
     // No saved session — show login straight away
