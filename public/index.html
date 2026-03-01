@@ -352,9 +352,10 @@ header{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--header-h);ba
   body.show-lists .sidebar{display:block;}
   body.show-lists .main{display:none;}
   .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);z-index:200;}
-  .mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;color:var(--soft);border-top:2px solid transparent;padding:6px 0;transition:color .12s;}
+  .mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;font-weight:600;color:var(--soft);border-top:2px solid transparent;padding:6px 0;transition:color .12s;-webkit-tap-highlight-color:transparent;}
   .mn-btn svg{width:20px;height:20px;}
   .mn-btn.active{color:var(--blue);border-top-color:var(--blue);}
+  .chk{width:36px;height:36px;min-width:36px;min-height:36px;}
   header{height:var(--header-h);padding:0 1rem;}
   .h-sub{display:none;}
   .h-brand{font-size:15px;}
@@ -918,11 +919,13 @@ function applyTranslations(){
   tx('sbTabAdd','addItem'); tx('sbTabLists','myLists');
 
   // Lists panel
-  // listBuilderLabel handled dynamically in JS
   ph('tplName','phListName'); ph('tiName','phTiName'); ph('tiNote','phTiNote');
   tx('tiAddBtn','tiAddBtn');
   tx('savedListsLabel','savedListsLabel');
   tx('saveListBtn','saveListBtn');
+  // Re-render tpl area and saved cards so their text is in new language
+  if(typeof renderTplItems === 'function') renderTplItems();
+  if(typeof renderSavedCards === 'function') renderSavedCards();
 
   // Toolbar
   tx('clearDoneBtn','clearDone');
@@ -975,8 +978,9 @@ function applyTranslations(){
   });
 
   // Refresh the main render so item cards use translated strings
-  if(typeof render === 'function') render();
-  if(typeof updateHeader === 'function') updateHeader();
+  // Only re-render if we actually have items or are logged in (avoid wiping state at init)
+  if(typeof render === 'function' && items && items.length >= 0 && SESSION) render();
+  if(typeof updateHeader === 'function' && SESSION) updateHeader();
 }
 
 // Current user session (persisted to localStorage)
@@ -1006,11 +1010,11 @@ async function apiFetch(path, opts={}){
 }
 
 /* ═══ AUTH ═══ */
-function authTab(t){
-  document.getElementById('authTabLogin').classList.toggle('active', t==='login');
-  document.getElementById('authTabSignup').classList.toggle('active', t==='signup');
-  document.getElementById('authPanelLogin').style.display = t==='login'?'':'none';
-  document.getElementById('authPanelSignup').style.display = t==='signup'?'':'none';
+function authTab(tab){
+  document.getElementById('authTabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('authTabSignup').classList.toggle('active', tab==='signup');
+  document.getElementById('authPanelLogin').style.display = tab==='login'?'':'none';
+  document.getElementById('authPanelSignup').style.display = tab==='signup'?'':'none';
 }
 
 async function doLogin(){
@@ -1084,15 +1088,17 @@ function onLoggedIn(){
     updateNoFamilyBanner();
     load();
     startSSE();
+    // On mobile, default to showing the list view with nav visible
+    if(isMob()) mobileShow('list');
   }
 }
 
 /* ═══ FAMILY ═══ */
-function famTab(t){
-  document.getElementById('famTabCreate').classList.toggle('active', t==='create');
-  document.getElementById('famTabJoin').classList.toggle('active', t==='join');
-  document.getElementById('famPanelCreate').classList.toggle('active', t==='create');
-  document.getElementById('famPanelJoin').classList.toggle('active', t==='join');
+function famTab(tab){
+  document.getElementById('famTabCreate').classList.toggle('active', tab==='create');
+  document.getElementById('famTabJoin').classList.toggle('active', tab==='join');
+  document.getElementById('famPanelCreate').classList.toggle('active', tab==='create');
+  document.getElementById('famPanelJoin').classList.toggle('active', tab==='join');
 }
 
 function openFamilyScreen(){
@@ -1193,6 +1199,7 @@ function onFamilyJoined(){
   load();
   loadLists();
   startSSE();
+  if(isMob()) mobileShow('list');
 }
 
 function updateNoFamilyBanner(){
@@ -1291,16 +1298,16 @@ function confirm2(title, body, icon, confirmLabel){
 function closeConfirm(){document.getElementById('confirmModal').classList.add('hidden');const r=_cr;_cr=null;if(r)r(false);}
 
 /* ═══ SIDEBAR TABS ═══ */
-function sbTab(t){
-  document.getElementById('sbPanelAdd').classList.toggle('active',t==='add');
-  document.getElementById('sbPanelLists').classList.toggle('active',t==='lists');
-  document.getElementById('sbTabAdd').classList.toggle('active',t==='add');
-  document.getElementById('sbTabLists').classList.toggle('active',t==='lists');
-  if(t==='lists'){ loadLists(); }
+function sbTab(tab){
+  document.getElementById('sbPanelAdd').classList.toggle('active',tab==='add');
+  document.getElementById('sbPanelLists').classList.toggle('active',tab==='lists');
+  document.getElementById('sbTabAdd').classList.toggle('active',tab==='add');
+  document.getElementById('sbTabLists').classList.toggle('active',tab==='lists');
+  if(tab==='lists'){ loadLists(); }
 }
 
 /* ═══ MOBILE NAV ═══ */
-function isMob(){return window.innerWidth<=700;}
+function isMob(){return window.matchMedia('(max-width:700px)').matches;}
 function mobileShow(view){
   if(!isMob())return;
   document.body.classList.remove('show-add','show-lists');
@@ -1366,7 +1373,18 @@ async function addItem(){
   finally{btn.disabled=false;btn.textContent=t('submitBtn');}
 }
 
+const _togglePending = new Set();
+function toggleDoneClick(btn){
+  const id = btn.dataset.id;
+  if(_togglePending.has(id)) return; // block double-tap
+  const item = items.find(x=>x.id===id);
+  if(!item) return;
+  toggleDone(id, !item.done);
+}
+
 async function toggleDone(id, done) {
+  if(_togglePending.has(id)) return;
+  _togglePending.add(id);
   const i = items.findIndex(x => x.id === id);
   if (i !== -1) items[i].done = done;
 
@@ -1392,6 +1410,8 @@ async function toggleDone(id, done) {
     }
     updateHeader();
     toast('Could not update — check your connection');
+  } finally {
+    _togglePending.delete(id);
   }
 }
 
@@ -1443,7 +1463,7 @@ function render(){
   el.innerHTML=f.map(item=>{
     if(editId===item.id)return editCard(item);
     return `<div class="item-card ${item.done?'done':''} ul-${item.urgency}" id="c-${item.id}">
-      <button class="chk ${item.done?'on':''}" onclick="toggleDone('${item.id}',${!item.done})">${item.done?'✓':''}</button>
+      <button class="chk ${item.done?'on':''}" data-id="${item.id}" onclick="toggleDoneClick(this)">${item.done?'✓':''}</button>
       <div class="ic-body">
         <div class="ic-top">
           <span class="ic-name">${esc(item.name)}</span>
@@ -1462,7 +1482,7 @@ function render(){
 }
 
 function editCard(item){return `<div class="item-card editing ul-${item.urgency}" id="c-${item.id}">
-  <button class="chk ${item.done?'on':''}" onclick="toggleDone('${item.id}',${!item.done})">${item.done?'✓':''}</button>
+  <button class="chk ${item.done?'on':''}" data-id="${item.id}" onclick="toggleDoneClick(this)">${item.done?'✓':''}</button>
   <div class="ic-edit">
     <input id="ei-n" value="${esc(item.name)}" placeholder="${t('phItemName')}" maxlength="80">
     <textarea id="ei-note" rows="2" placeholder="${t('phNote')}">${esc(item.note||'')}</textarea>
